@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}EcoSmart - Gestión de Sensores{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-microchip me-2"></i>Gestión de Sensores</h1>
+            <p class="text-muted">Administre los sensores de la plataforma EcoSmart</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addSensorModal">
+                <i class="fas fa-plus-circle me-1"></i>Añadir Sensor
+            </button>
+        </div>
+    </div>
+
+    {% if success_message %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{{ success_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Filtros</h5>
+                    <form method="get" action="/" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo de Sensor</label>
+                            <select name="tipo" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="temperatura">Temperatura</option>
+                                <option value="luz">Luz</option>
+                                <option value="ph">pH</option>
+                                <option value="conductividad">Conductividad</option>
+                                <option value="humedad">Humedad</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Estado</label>
+                            <select name="estado" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="activo">Activo</option>
+                                <option value="noActivo">No Activo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ubicación</label>
+                            <input type="text" name="ubicacion" class="form-control" placeholder="Buscar por ubicación">
+                        </div>
+                        <div class="col-md-2 align-self-end">
+                            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de sensores -->
+    <div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
+        {% for sensor in sensores %}
+        <div class="col">
+            <div class="card mb-4 sensor-card tipo-{{ sensor.tipo }}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="{{ sensor_info[sensor.tipo].icon }} me-2"></i>{{ sensor.tipo|title }}
+                    </h5>
+                    <span class="badge {{ 'bg-success' if sensor.estado == 'activo' else 'bg-secondary' }}">
+                        {{ sensor.estado|title }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- ID y ubicación -->
+                    <h6 class="card-subtitle mb-2 text-muted">ID: {{ sensor.id }}</h6>
+                    <p class="card-text mb-3"><i class="fas fa-map-marker-alt me-1"></i>{{ sensor.ubicacion }}</p>
+                    
+                    <!-- Última lectura -->
+                    {% if sensor.ultima_medicion %}
+                    <div class="mb-3">
+                        <h6 class="text-muted">Última lectura:</h6>
+                        <div class="d-flex align-items-baseline">
+                            <span class="fs-4 fw-bold me-2">{{ sensor.ultima_lectura }}</span>
+                            <span class="text-muted">{{ sensor_info[sensor.tipo].unit }}</span>
+                        </div>
+                        <small class="text-muted">{{ sensor.ultima_medicion.strftime('%d/%m/%Y %H:%M:%S') }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Parámetros -->
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-sync-alt me-1"></i>Frecuencia: {{ sensor.frecuencia_lectura }} segundos
+                        </small><br>
+                        <small class="text-muted">
+                            <i class="fas fa-ruler me-1"></i>Rango: {{ sensor.min_lectura }} - {{ sensor.max_lectura }} {{ sensor_info[sensor.tipo].unit }}
+                        </small><br>
+                        {% if sensor.promedio is not none %}
+                        <small class="text-muted">
+                            <i class="fas fa-bullseye me-1"></i>Promedio deseado: {{ sensor.promedio }} {{ sensor_info[sensor.tipo].unit }}
+                        </small><br>
+                        {% endif %}
+                        <small class="text-muted">
+                            <i class="fas fa-random me-1"></i>Ruido: {{ sensor.ruido }}
+                        </small>
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between">
+                    <a href="/lecturas/{{ sensor.id }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-chart-line me-1"></i>Ver Lecturas
+                    </a>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="editarSensor('{{ sensor.id }}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm {{ 'btn-outline-warning' if sensor.estado == 'activo' else 'btn-outline-success' }}" 
+                                onclick="cambiarEstado('{{ sensor.id }}')">
+                            <i class="fas {{ 'fa-pause' if sensor.estado == 'activo' else 'fa-play' }}"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No se encontraron sensores con los criterios seleccionados.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal para añadir sensor -->
+<div class="modal fade" id="addSensorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Añadir Nuevo Sensor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/sensores/add" method="post">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">ID del Sensor</label>
+                            <input type="text" name="sensorId" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de Sensor</label>
+                            <select name="sensorTipo" class="form-select" required>
+                                <option value="temperatura">Temperatura</option>
+                                <option value="luz">Luz</option>
+                                <option value="ph">pH</option>
+                                <option value="conductividad">Conductividad</option>
+                                <option value="humedad">Humedad</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" name="sensorUbicacion" class="form-control" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Frecuencia (segundos)</label>
+                            <input type="number" name="sensorFrecuencia" class="form-control" min="1" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Valor Mínimo</label>
+                            <input type="number" name="sensorMinLectura" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Valor Máximo</label>
+                            <input type="number" name="sensorMaxLectura" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Valor Promedio</label>
+                            <input type="number" name="sensorPromedio" class="form-control" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ruido</label>
+                            <input type="number" name="sensorRuido" class="form-control" step="0.01" value="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estado</label>
+                            <select name="sensorEstado" class="form-select">
+                                <option value="activo">Activo</option>
+                                <option value="noActivo">No Activo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Guardar Sensor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar sensor (similar al de añadir) -->
+<div class="modal fade" id="editSensorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Sensor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/sensores/edit" method="post">
+                    <input type="hidden" id="editSensorId" name="sensorId">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">ID del Sensor</label>
+                            <input type="text" id="displaySensorId" class="form-control" disabled>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de Sensor</label>
+                            <select id="editSensorTipo" name="sensorTipo" class="form-select" required>
+                                <option value="temperatura">Temperatura</option>
+                                <option value="luz">Luz</option>
+                                <option value="ph">pH</option>
+                                <option value="conductividad">Conductividad</option>
+                                <option value="humedad">Humedad</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" id="editSensorUbicacion" name="sensorUbicacion" class="form-control" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Frecuencia (segundos)</label>
+                            <input type="number" id="editSensorFrecuencia" name="sensorFrecuencia" class="form-control" min="1" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Valor Mínimo</label>
+                            <input type="number" id="editSensorMinLectura" name="sensorMinLectura" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Valor Máximo</label>
+                            <input type="number" id="editSensorMaxLectura" name="sensorMaxLectura" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Valor Promedio</label>
+                            <input type="number" id="editSensorPromedio" name="sensorPromedio" class="form-control" step="0.01" placeholder="Opcional">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ruido</label>
+                            <input type="number" id="editSensorRuido" name="sensorRuido" class="form-control" step="0.01" value="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estado</label>
+                            <select id="editSensorEstado" name="sensorEstado" class="form-select">
+                                <option value="activo">Activo</option>
+                                <option value="noActivo">No Activo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Actualizar Sensor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para visualizar lecturas de un sensor -->
+<div class="modal fade" id="lecturasModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-chart-line me-2"></i>Lecturas del Sensor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6 id="sensorLecturasInfo"></h6>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button id="actualizarLectura" class="btn btn-sm btn-primary">
+                            <i class="fas fa-sync-alt me-1"></i>Actualizar Lectura
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="sensorLecturaStatus" class="alert alert-info d-none">
+                    <i class="fas fa-info-circle me-2"></i><span id="sensorLecturaMessage"></span>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 id="ultimaLectura">--</h3>
+                                <p class="text-muted" id="unidadLectura"></p>
+                                <small id="tiempoLectura" class="text-muted"></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="sensorChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Función para ver las lecturas de un sensor
+    function verLecturas(sensorId) {
+        // Información del sensor
+        fetch(`/api/sensores/${sensorId}`)
+            .then(response => response.json())
+            .then(sensor => {
+                const infoElement = document.getElementById('sensorLecturasInfo');
+                infoElement.innerHTML = `Sensor ${sensor.id} - ${sensor.tipo} (${sensor.ubicacion})`;
+                
+                document.getElementById('unidadLectura').textContent = `${sensor_info[sensor.tipo].unit}`;
+                
+                // Obtenemos la lectura actual
+                obtenerLectura(sensorId);
+                
+                // Configuramos el botón de actualizar
+                document.getElementById('actualizarLectura').onclick = function() {
+                    obtenerLectura(sensorId);
+                };
+                
+                // Mostramos el modal
+                const modal = new bootstrap.Modal(document.getElementById('lecturasModal'));
+                modal.show();
+            });
+    }
+    
+    // Función para obtener la lectura de un sensor
+    function obtenerLectura(sensorId) {
+        fetch(`/api/sensores/${sensorId}/lectura`)
+            .then(response => response.json())
+            .then(data => {
+                const statusElement = document.getElementById('sensorLecturaStatus');
+                const messageElement = document.getElementById('sensorLecturaMessage');
+                
+                if (data.error) {
+                    statusElement.classList.remove('d-none', 'alert-info');
+                    statusElement.classList.add('alert-warning');
+                    messageElement.textContent = data.error;
+                    document.getElementById('ultimaLectura').textContent = '--';
+                    document.getElementById('tiempoLectura').textContent = '';
+                    return;
+                }
+                
+                if (data.mensaje) {
+                    // No es tiempo para una nueva lectura
+                    statusElement.classList.remove('d-none', 'alert-warning');
+                    statusElement.classList.add('alert-info');
+                    messageElement.textContent = `${data.mensaje}. Espera ${Math.round(data.tiempo_espera_segundos)} segundos.`;
+                    
+                    const fecha = new Date(data.ultima_lectura_timestamp);
+                    document.getElementById('tiempoLectura').textContent = `Última actualización: ${fecha.toLocaleTimeString()}`;
+                } else {
+                    // Se obtuvo una nueva lectura
+                    statusElement.classList.add('d-none');
+                    document.getElementById('ultimaLectura').textContent = data.valor.toFixed(2);
+                    
+                    const fecha = new Date(data.timestamp);
+                    document.getElementById('tiempoLectura').textContent = `Actualizado: ${fecha.toLocaleTimeString()}`;
+                }
+            });
+    }
+    
+    // Función para cambiar el estado de un sensor
+    function cambiarEstado(sensorId) {
+        fetch(`/api/sensores/${sensorId}/toggle-estado`, {
+            method: 'PUT'
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Recargamos la página para reflejar el cambio
+            location.reload();
+        });
+    }
+    
+    // Función para cargar los datos de un sensor en el formulario de edición
+    function editarSensor(sensorId) {
+        fetch(`/api/sensores/${sensorId}`)
+            .then(response => response.json())
+            .then(sensor => {
+                // Llenamos el formulario con los datos del sensor
+                document.getElementById('editSensorId').value = sensor.id;
+                document.getElementById('displaySensorId').value = sensor.id;
+                document.getElementById('editSensorTipo').value = sensor.tipo;
+                document.getElementById('editSensorUbicacion').value = sensor.ubicacion;
+                document.getElementById('editSensorFrecuencia').value = sensor.frecuencia_lectura;
+                document.getElementById('editSensorMinLectura').value = sensor.min_lectura;
+                document.getElementById('editSensorMaxLectura').value = sensor.max_lectura;
+                document.getElementById('editSensorRuido').value = sensor.ruido;
+                document.getElementById('editSensorEstado').value = sensor.estado;
+                document.getElementById('editSensorPromedio').value = sensor.promedio || '';
+                
+                // Mostramos el modal
+                const modal = new bootstrap.Modal(document.getElementById('editSensorModal'));
+                modal.show();
+            });
+    }
+</script>
+{% endblock %}

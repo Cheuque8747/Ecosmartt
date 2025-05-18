@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión - EcoSmart{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-4">
+        <div class="login-form">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-leaf text-success me-2"></i>EcoSmart
+            </h2>
+            <h4 class="text-center mb-4">Iniciar Sesión</h4>
+            
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+            </div>
+            {% endif %}
+            
+            {% if success %}
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ success }}
+            </div>
+            {% endif %}
+            
+            <form method="post" action="/auth/login">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Nombre de usuario</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+            <div class="mt-3 text-center">
+                <small class="text-muted">
+                    Si no tienes una cuenta, contacta al administrador para crear una.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Oculta el navbar solo en la página de login */
+    .navbar {
+        display: none !important;
+    }
+</style>
+{% endblock %}

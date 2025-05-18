@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Clima - EcoSmart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-cloud-sun me-2"></i>Clima y Pronóstico</h2>
+    <form id="clima-form" class="row g-3 mb-4">
+        <div class="col-auto">
+            <input type="text" class="form-control" id="ciudad" placeholder="Ciudad" required>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary mb-3">Consultar</button>
+        </div>
+    </form>
+    <div id="clima-actual" class="mb-4"></div>
+    <div id="pronostico"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('clima-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const ciudad = document.getElementById('ciudad').value.trim();
+    if (!ciudad) return;
+
+    // Clima actual
+    const climaActualDiv = document.getElementById('clima-actual');
+    climaActualDiv.innerHTML = '<div class="text-muted">Cargando clima actual...</div>';
+    fetch(`/clima/actual?ciudad=${encodeURIComponent(ciudad)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.weather) {
+                climaActualDiv.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${data.name}, ${data.sys.country}</h5>
+                            <p class="card-text">
+                                <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="icono clima">
+                                <strong>${data.weather[0].description}</strong><br>
+                                Temperatura: ${data.main.temp}°C<br>
+                                Humedad: ${data.main.humidity}%<br>
+                                Viento: ${data.wind.speed} m/s
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                climaActualDiv.innerHTML = '<div class="text-danger">No se pudo obtener el clima actual.</div>';
+            }
+        });
+
+    // Pronóstico 5 días
+    const pronosticoDiv = document.getElementById('pronostico');
+    pronosticoDiv.innerHTML = '<div class="text-muted">Cargando pronóstico...</div>';
+    fetch(`/clima/pronostico?ciudad=${encodeURIComponent(ciudad)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.list) {
+                // Agrupar por día
+                const dias = {};
+                data.list.forEach(item => {
+                    const fecha = item.dt_txt.split(' ')[0];
+                    if (!dias[fecha]) dias[fecha] = [];
+                    dias[fecha].push(item);
+                });
+                let html = '';
+                Object.keys(dias).forEach(fecha => {
+                    const dia = dias[fecha][0];
+                    html += `
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <h6 class="card-title">${fecha}</h6>
+                                <div class="row">
+                                    ${dias[fecha].map(hora => `
+                                        <div class="col-6 col-md-2 text-center mb-2">
+                                            <small>${hora.dt_txt.split(' ')[1].slice(0,5)}</small><br>
+                                            <img src="https://openweathermap.org/img/wn/${hora.weather[0].icon}.png" alt="icono" width="40"><br>
+                                            ${hora.main.temp}°C<br>
+                                            <small>${hora.weather[0].description}</small>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                pronosticoDiv.innerHTML = html;
+            } else {
+                pronosticoDiv.innerHTML = '<div class="text-danger">No se pudo obtener el pronóstico.</div>';
+            }
+        });
+});
+</script>
+{% endblock %}

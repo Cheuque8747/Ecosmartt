@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EcoSmart - Plataforma de Agricultura Inteligente{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --ecosmart-primary: #2c8c63;
+            --ecosmart-secondary: #4ba375;
+            --ecosmart-light: #e9f5f0;
+            --ecosmart-dark: #1a5c40;
+        }
+
+        html, body {
+        height: 100%;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            flex: 1 0 auto;
+        }
+
+        .bg-ecosmart {
+            background-color: var(--ecosmart-primary);
+        }
+        
+        .sensor-card {
+            border-left: 5px solid #ccc;
+            transition: transform 0.2s;
+        }
+        
+        .sensor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .sensor-active {
+            color: #28a745;
+        }
+        
+        .sensor-inactive {
+            color: #6c757d;
+        }
+        
+        .card-header {
+            background-color: rgba(0,0,0,0.03);
+        }
+        
+        .tipo-temperatura { border-left-color: #dc3545; }
+        .tipo-luz { border-left-color: #ffc107; }
+        .tipo-ph { border-left-color: #17a2b8; }
+        .tipo-conductividad { border-left-color: #6610f2; }
+        .tipo-humedad { border-left-color: #20c997; }
+    </style>
+    
+    {% block head %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-ecosmart">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-leaf me-2"></i>EcoSmart
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i> Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ia/chat"><i class="fas fa-robot me-1"></i> Asistente IA</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/clima/vista"><i class="fas fa-cloud-sun me-1"></i> Datos Clima</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/clima/historial"><i class="fas fa-history me-1"></i> Historial Clima</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/docs"><i class="fas fa-book-open me-1"></i> Documentación API</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    {% if request.cookies.get("access_token") %}
+                    <a href="/auth/logout" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-out-alt me-1"></i> Cerrar sesión</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->   
+    <div class="container-fluid main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-ecosmart mt-5 py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 EcoSmart - Plataforma de Agricultura Inteligente</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-0">Proyecto de Programación - Universidad de Talca</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

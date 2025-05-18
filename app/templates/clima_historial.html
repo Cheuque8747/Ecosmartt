@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Historial de Clima{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Historial de Clima</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Fecha y Hora</th>
+                <th>Ubicación</th>
+                <th>Temp (°C)</th>
+                <th>Humedad (%)</th>
+                <th>Presión (hPa)</th>
+                <th>Viento (m/s)</th>
+                <th>Descripción</th>
+                <th>Icono</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in historial %}
+            <tr>
+                <td>{{ c.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ c.ubicacion }}</td>
+                <td>{{ c.temperatura }}</td>
+                <td>{{ c.humedad }}</td>
+                <td>{{ c.presion }}</td>
+                <td>{{ c.viento }}</td>
+                <td>{{ c.descripcion }}</td>
+                <td><img src="https://openweathermap.org/img/wn/%7B%7B c.icono }}.png"></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
