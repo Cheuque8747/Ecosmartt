@@ -1,4 +1,3 @@
-
 from sqlalchemy.orm import Session
 from database import Sensor
 from datetime import datetime
@@ -29,7 +28,7 @@ def filtrar_sensores(db: Session, tipo: Optional[str] = None, estado: Optional[s
     
     return query.all()
 
-def crear_sensor(db: Session, sensor: SensorCreatePydantic, sensor_id: str) -> Sensor:
+def crear_sensor(db: Session, sensor: SensorCreatePydantic, sensor_id: str, parcela_id: int) -> Sensor:
     """Crea un nuevo sensor en la base de datos"""
     db_sensor = Sensor(
         id=sensor_id,
@@ -41,7 +40,8 @@ def crear_sensor(db: Session, sensor: SensorCreatePydantic, sensor_id: str) -> S
         ubicacion=sensor.ubicacion,
         estado=sensor.estado,
         promedio=getattr(sensor, 'promedio', (sensor.min_lectura + sensor.max_lectura) / 2),
-        ultima_medicion=datetime.now()
+        ultima_medicion=datetime.now(),
+        parcela_id=parcela_id  # Asignar la parcela al sensor
     )
     
     db.add(db_sensor)

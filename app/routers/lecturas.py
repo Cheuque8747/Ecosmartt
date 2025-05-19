@@ -11,6 +11,10 @@ from services import sensor_service, lecturas_service
 from config import templates, sensor_info
 from services.auth_service import get_current_active_user
 
+
+import plotly.graph_objects as go
+from io import StringIO
+
 router = APIRouter(tags=["lecturas"])
 
 @router.get("/lecturas/{sensor_id}", response_class=HTMLResponse,
@@ -34,6 +38,33 @@ async def ver_lecturas(
     
     # Calculamos estadísticas
     estadisticas = lecturas_service.obtener_estadisticas_sensor(db, sensor_id)
+
+
+    # Extraer datos para el gráfico
+    labels = [lectura.timestamp.isoformat() for lectura in lecturas]
+    data = [lectura.valor for lectura in lecturas]
+
+    # Crear el gráfico con Plotly
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=labels,
+        y=data,
+        mode='lines+markers',
+        line=dict(color='rgb(75, 192, 192)'),
+        marker=dict(size=8),
+        name='Lecturas'
+    ))
+    fig.update_layout(
+        title='Lecturas del Sensor',
+        xaxis_title='Fecha y Hora',
+        yaxis_title='Valor',
+        xaxis=dict(showgrid=True),
+        yaxis=dict(showgrid=True)
+    )
+
+    # Renderizar el gráfico como HTML
+    graph_html = fig.to_html(full_html=False)
+
     
     # Convertimos las lecturas a formato compatible con el template
     lecturas_formateadas = []
@@ -42,7 +73,7 @@ async def ver_lecturas(
             "valor": lectura.valor,
             "timestamp": lectura.timestamp.isoformat(),
             "unidad": lectura.unidad,
-            "tipo": lectura.tipo
+            "tipo": lectura.tipo,
         })
     
     return templates.TemplateResponse(
@@ -55,7 +86,8 @@ async def ver_lecturas(
             "min_valor": estadisticas["min_valor"],
             "max_valor": estadisticas["max_valor"],
             "promedio_valor": estadisticas["promedio_valor"],
-            "user": current_user
+            "user": current_user,
+            "graph_html": graph_html
         }
     )
 

@@ -1,13 +1,12 @@
-
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 # Módulos actualizados
-
-from routers import sensores, lecturas, auth, clima, ia
+from routers import sensores, lecturas, auth, ia, clima, parcelas
 from routers.auth import get_current_active_user
+
 from config import templates, sensor_info
 from database import get_db, Sensor, Base, engine
 
@@ -17,6 +16,7 @@ import threading
 from sqlalchemy.orm import Session
 from typing import Optional
 from services.auth_service import get_current_active_user
+
 
 # Crear las tablas en la base de datos si no existen
 Base.metadata.create_all(bind=engine)
@@ -30,9 +30,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth.router, prefix="/auth")
 app.include_router(sensores.router)
 app.include_router(lecturas.router)
-app.include_router(clima.router)
 app.include_router(ia.router)
+app.include_router(clima.router)
+app.include_router(parcelas.router)
 
+from database import Parcela
+from fastapi import Query
+#HTTPException
+from fastapi.exceptions import HTTPException
 
 # Rutas para la API
 @app.get("/", response_class=HTMLResponse)
@@ -40,36 +45,46 @@ async def index(
     request: Request,
     db: Session = Depends(get_db),
     current_user: Optional[dict] = Depends(get_current_active_user),
+    parcela_id: Optional[int] = None,
     tipo: Optional[str] = None,
     estado: Optional[str] = None,
     ubicacion: Optional[str] = None
 ):
-    """Renderiza la página principal solo si el usuario está autenticado, si no redirige a login"""
+    """Renderiza la página principal con sensores filtrados según el rol del usuario"""
     if not current_user:
         return RedirectResponse(url="/auth/login")
-    # Consulta base
-    query = db.query(Sensor)
-    
-    # Aplicar filtros
+
+    # Filtrar sensores según el rol del usuario
+    if current_user.role == "agricultor":
+        # Solo mostrar sensores de la parcela del agricultor
+        if not current_user.parcela_id:
+            raise HTTPException(status_code=403, detail="No tienes una parcela asignada")
+        sensores = db.query(Sensor).filter(Sensor.parcela_id == current_user.parcela_id).all()
+        parcelas = [db.query(Parcela).get(current_user.parcela_id)]
+    else:
+        # Técnicos y agrónomos pueden ver todas las parcelas
+        parcelas = db.query(Parcela).all()
+        if parcela_id:
+            sensores = db.query(Sensor).filter(Sensor.parcela_id == parcela_id).all()
+        else:
+            sensores = db.query(Sensor).all()
+
+    # Aplicar filtros adicionales
     if tipo:
-        query = query.filter(Sensor.tipo == tipo)
-    
+        sensores = [s for s in sensores if s.tipo == tipo]
     if estado:
-        query = query.filter(Sensor.estado == estado)
-    
+        sensores = [s for s in sensores if s.estado == estado]
     if ubicacion:
-        query = query.filter(Sensor.ubicacion.ilike(f"%{ubicacion}%"))
-    
-    # Ejecutar consulta
-    sensores = query.all()
-    
+        sensores = [s for s in sensores if ubicacion.lower() in s.ubicacion.lower()]
+
     return templates.TemplateResponse(
-        "index.html", 
+        "index.html",
         {
-            "request": request, 
+            "request": request,
             "sensores": sensores,
             "sensor_info": sensor_info,
-            "now": datetime.now(),
+            "parcelas": parcelas,
+            "parcela_id": parcela_id,
             "user": current_user
         }
     )

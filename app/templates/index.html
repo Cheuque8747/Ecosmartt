@@ -9,11 +9,13 @@
             <h1><i class="fas fa-microchip me-2"></i>Gestión de Sensores</h1>
             <p class="text-muted">Administre los sensores de la plataforma EcoSmart</p>
         </div>
+        {% if user and user.role == 'tecnico' %}
         <div class="col-md-4 text-end">
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addSensorModal">
                 <i class="fas fa-plus-circle me-1"></i>Añadir Sensor
             </button>
         </div>
+        {% endif %}
     </div>
 
     {% if success_message %}
@@ -21,6 +23,22 @@
         <i class="fas fa-check-circle me-2"></i>{{ success_message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+    {% endif %}
+
+    {% if user and user.role != 'agricultor' %}
+    <!-- Selector de parcelas para técnicos y agrónomos -->
+    <form method="get" action="/" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <select name="parcela_id" class="form-select" onchange="this.form.submit()">
+                <option value="">Seleccione una parcela</option>
+                {% for p in parcelas %}
+                <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
+                    {{ p.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
     {% endif %}
 
     <!-- Filtros -->
@@ -109,12 +127,13 @@
                             <i class="fas fa-random me-1"></i>Ruido: {{ sensor.ruido }}
                         </small>
                     </p>
-                </div>
+                </div> 
                 <div class="card-footer bg-transparent d-flex justify-content-between">
                     <a href="/lecturas/{{ sensor.id }}" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-chart-line me-1"></i>Ver Lecturas
                     </a>
                     <div>
+                        {% if user and user.role == 'tecnico' %}
                         <button class="btn btn-sm btn-outline-secondary" onclick="editarSensor('{{ sensor.id }}')">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -122,6 +141,7 @@
                                 onclick="cambiarEstado('{{ sensor.id }}')">
                             <i class="fas {{ 'fa-pause' if sensor.estado == 'activo' else 'fa-play' }}"></i>
                         </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -167,10 +187,21 @@
                         <input type="text" name="sensorUbicacion" class="form-control" required>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Parcela</label>
+                            <select name="parcelaId" class="form-select" required>
+                                <option value="">Seleccione una parcela</option>
+                                {% for parcela in parcelas %}
+                                <option value="{{ parcela.id }}">{{ parcela.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">Frecuencia (segundos)</label>
                             <input type="number" name="sensorFrecuencia" class="form-control" min="1" required>
                         </div>
+                    </div>
+                    <div class="row mb-3">
                         <div class="col-md-3">
                             <label class="form-label">Valor Mínimo</label>
                             <input type="number" name="sensorMinLectura" class="form-control" step="0.01" required>
@@ -183,18 +214,9 @@
                             <label class="form-label">Valor Promedio</label>
                             <input type="number" name="sensorPromedio" class="form-control" step="0.01" required>
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label class="form-label">Ruido</label>
                             <input type="number" name="sensorRuido" class="form-control" step="0.01" value="0">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Estado</label>
-                            <select name="sensorEstado" class="form-select">
-                                <option value="activo">Activo</option>
-                                <option value="noActivo">No Activo</option>
-                            </select>
                         </div>
                     </div>
                     <div class="text-end">

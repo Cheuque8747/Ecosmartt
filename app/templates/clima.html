@@ -5,92 +5,118 @@
 {% block content %}
 <div class="container mt-4">
     <h2><i class="fas fa-cloud-sun me-2"></i>Clima y Pronóstico</h2>
-    <form id="clima-form" class="row g-3 mb-4">
-        <div class="col-auto">
-            <input type="text" class="form-control" id="ciudad" placeholder="Ciudad" required>
-        </div>
-        <div class="col-auto">
-            <button type="submit" class="btn btn-primary mb-3">Consultar</button>
+
+
+    {% if user and user.role != 'agricultor' %}
+    <!-- Selector de parcelas para técnicos y agrónomos -->
+    <form method="get" action="/clima/vista" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <select name="parcela_id" class="form-select" onchange="this.form.submit()">
+                <option value="">Seleccione una parcela</option>
+                {% for p in parcelas %}
+                <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
+                    {{ p.nombre }}
+                </option>
+                {% endfor %}
+            </select>
         </div>
     </form>
-    <div id="clima-actual" class="mb-4"></div>
-    <div id="pronostico"></div>
+    {% endif %}
+
+
+    {% if parcela_nombre and ciudad %}
+    <div class="mb-4">
+        <h4>Parcela: {{ parcela_nombre }}</h4>
+        <h5>Ubicación: {{ ciudad }}</h5>
+    </div>
+    {% endif %}
+    {% if user and user.role != 'agricultor' %}
+    <div class="mb-4">
+        <button id="guardarClima" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>Guardar Clima Actual
+        </button>
+    </div>
+    {% endif %}
+
+    {% if clima_actual %}
+    <!-- Clima actual -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Clima Actual</h5>
+        <p class="card-text">
+            <strong>Temperatura:</strong> {{ clima_actual["main"]["temp"] }} °C<br>
+            <strong>Humedad:</strong> {{ clima_actual["main"]["humidity"] }} %<br>
+            <strong>Presión:</strong> {{ clima_actual["main"]["pressure"] }} hPa<br>
+            <strong>Viento:</strong> {{ clima_actual["wind"]["speed"] }} m/s<br>
+            <strong>Descripción:</strong> {{ clima_actual["weather"][0]["description"] }}
+        </p>
+    </div>
 </div>
-{% endblock %}
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>No hay datos de clima actual para esta parcela.
+    </div>
+    {% endif %}
+
+    {% if pronostico %}
+    <!-- Pronóstico -->
+    <h5>Pronóstico de 5 días cada 3 horas</h5>
+    <div class="row">
+        {% for dia in pronostico.list %}
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="card-title">{{ dia.dt_txt.split(' ')[0] }}</h6>
+                    <p class="card-text">
+                        <img src="https://openweathermap.org/img/wn/{{ dia.weather[0].icon }}.png" alt="icono clima">
+                        <strong>{{ dia.weather[0].description }}</strong><br>
+                        Temperatura: {{ dia.main.temp }} °C<br>
+                        Humedad: {{ dia.main.humidity }} %<br>
+                        Viento: {{ dia.wind.speed }} m/s
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>No hay datos de pronóstico disponibles.
+    </div>
+    {% endif %}
+</div>
+
 
 {% block scripts %}
 <script>
-document.getElementById('clima-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const ciudad = document.getElementById('ciudad').value.trim();
-    if (!ciudad) return;
+    document.getElementById('guardarClima').addEventListener('click', async function () {
+        const parcelaId = "{{ parcela_id }}";
+        const ciudad = "{{ ciudad }}";
 
-    // Clima actual
-    const climaActualDiv = document.getElementById('clima-actual');
-    climaActualDiv.innerHTML = '<div class="text-muted">Cargando clima actual...</div>';
-    fetch(`/clima/actual?ciudad=${encodeURIComponent(ciudad)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.weather) {
-                climaActualDiv.innerHTML = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">${data.name}, ${data.sys.country}</h5>
-                            <p class="card-text">
-                                <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="icono clima">
-                                <strong>${data.weather[0].description}</strong><br>
-                                Temperatura: ${data.main.temp}°C<br>
-                                Humedad: ${data.main.humidity}%<br>
-                                Viento: ${data.wind.speed} m/s
-                            </p>
-                        </div>
-                    </div>
-                `;
-            } else {
-                climaActualDiv.innerHTML = '<div class="text-danger">No se pudo obtener el clima actual.</div>';
-            }
-        });
+        if (!ciudad) {
+            alert("No se puede guardar el clima porque no se ha seleccionado una parcela.");
+            return;
+        }
 
-    // Pronóstico 5 días
-    const pronosticoDiv = document.getElementById('pronostico');
-    pronosticoDiv.innerHTML = '<div class="text-muted">Cargando pronóstico...</div>';
-    fetch(`/clima/pronostico?ciudad=${encodeURIComponent(ciudad)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.list) {
-                // Agrupar por día
-                const dias = {};
-                data.list.forEach(item => {
-                    const fecha = item.dt_txt.split(' ')[0];
-                    if (!dias[fecha]) dias[fecha] = [];
-                    dias[fecha].push(item);
-                });
-                let html = '';
-                Object.keys(dias).forEach(fecha => {
-                    const dia = dias[fecha][0];
-                    html += `
-                        <div class="card mb-2">
-                            <div class="card-body">
-                                <h6 class="card-title">${fecha}</h6>
-                                <div class="row">
-                                    ${dias[fecha].map(hora => `
-                                        <div class="col-6 col-md-2 text-center mb-2">
-                                            <small>${hora.dt_txt.split(' ')[1].slice(0,5)}</small><br>
-                                            <img src="https://openweathermap.org/img/wn/${hora.weather[0].icon}.png" alt="icono" width="40"><br>
-                                            ${hora.main.temp}°C<br>
-                                            <small>${hora.weather[0].description}</small>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                pronosticoDiv.innerHTML = html;
+        try {
+            const response = await fetch(`/clima/actual?ciudad=${ciudad}`, {
+                method: 'GET'
+            });
+
+            if (response.ok) {
+                alert("Clima guardado correctamente.");
+                location.reload(); // Recargar la página para reflejar los cambios
             } else {
-                pronosticoDiv.innerHTML = '<div class="text-danger">No se pudo obtener el pronóstico.</div>';
+                const error = await response.json();
+                alert(`Error al guardar el clima: ${error.detail}`);
             }
-        });
-});
+        } catch (err) {
+            console.error("Error al guardar el clima:", err);
+            alert("Ocurrió un error al guardar el clima.");
+        }
+    });
 </script>
+{% endblock %}
+
+
 {% endblock %}

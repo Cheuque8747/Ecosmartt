@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Parcelas{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Parcelas</h2>
+    <form method="post" action="/parcelas/crear" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="nombre" class="form-control" placeholder="Nombre de la parcela" required>
+        </div>
+        <div class="col-md-4">
+            <input type="text" name="ubicacion" class="form-control" placeholder="Ubicación" required>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-success">Crear Parcela</button>
+        </div>
+    </form>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Ubicación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in parcelas %}
+            <tr>
+                <form method="post" action="/parcelas/actualizar/{{ p.id }}">
+                    <td><input type="text" name="nombre" value="{{ p.nombre }}" class="form-control" required></td>
+                    <td><input type="text" name="ubicacion" value="{{ p.ubicacion }}" class="form-control" required></td>
+                    <td>
+                        <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
+                        <form method="post" action="/parcelas/borrar/{{ p.id }}" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Borrar parcela?')">Borrar</button>
+                        </form>
+                    </td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

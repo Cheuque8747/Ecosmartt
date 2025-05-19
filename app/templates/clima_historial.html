@@ -1,8 +1,28 @@
 {% extends "base.html" %}
+
 {% block title %}Historial de Clima{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h2>Historial de Clima</h2>
+    <h2><i class="fas fa-history me-2"></i>Historial de Clima</h2>
+
+    {% if user and user.role != 'agricultor' %}
+    <!-- Selector de parcelas para técnicos y agrónomos -->
+    <form method="get" action="/clima/historial" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <select name="parcela_id" class="form-select" onchange="this.form.submit()">
+                <option value="">Seleccione una parcela</option>
+                {% for p in parcelas %}
+                <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
+                    {{ p.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+    {% endif %}
+
+    {% if historial %}
     <table class="table table-striped">
         <thead>
             <tr>
@@ -26,10 +46,14 @@
                 <td>{{ c.presion }}</td>
                 <td>{{ c.viento }}</td>
                 <td>{{ c.descripcion }}</td>
-                <td><img src="https://openweathermap.org/img/wn/%7B%7B c.icono }}.png"></td>
+                <td><img src="https://openweathermap.org/img/wn/{{ c.icono }}.png" alt="icono"></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>No hay datos de clima para esta parcela.</div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -320,39 +320,13 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--ecosmart-primary);">
         <div class="container">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="/">
                 <i class="fas fa-leaf me-2"></i>EcoSmart
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i> Inicio</a>
-                    </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ia/chat"><i class="fas fa-robot me-1"></i> Asistente IA</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="/clima/vista"><i class="fas fa-cloud-sun me-1"></i> Datos Clima</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/clima/historial"><i class="fas fa-history me-1"></i> Historial Clima</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="/docs"><i class="fas fa-book-open me-1"></i> Documentación API</a>
-                    </li>
-                </ul>
-                <div class="d-flex">
-                    {% if request.cookies.get("access_token") %}
-                    <a href="/auth/logout" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-out-alt me-1"></i> Cerrar sesión</a>
-                    {% endif %}
-                </div>
-            </div>
         </div>
     </nav>
 

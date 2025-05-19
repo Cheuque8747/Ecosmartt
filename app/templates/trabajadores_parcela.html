@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Trabajadores por Parcela{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Trabajadores por Parcela</h2>
+
+    {% if role != "agricultor" %}
+    <form method="get" action="/parcelas/trabajadores" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <select name="parcela_id" class="form-select" onchange="this.form.submit()">
+                <option value="">Seleccione una parcela</option>
+                {% for p in parcelas %}
+                    <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>{{ p.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+    {% endif %}
+
+    {% if role == "tecnico" and parcela_id %}
+    <!-- Formulario para agregar un nuevo trabajador -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>Agregar Trabajador</h5>
+            <form method="post" action="/parcelas/trabajadores/crear" class="row g-2">
+                <input type="hidden" name="parcela_id" value="{{ parcela_id }}">
+                <div class="col-md-3">
+                    <input type="text" name="username" class="form-control" placeholder="Usuario" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="email" name="email" class="form-control" placeholder="Email" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
+                </div>
+                <div class="col-md-2">
+                    <select name="role" class="form-select" required>
+                        <option value="agricultor">Agricultor</option>
+                        <option value="agronomo">Agrónomo</option>
+                        <option value="tecnico">Técnico</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-success">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if trabajadores %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Rol</th>
+                {% if role == "tecnico" %}
+                <th>Acciones</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% if role == "agricultor" or role == "agronomo" %}
+            <!-- Solo lista los trabajadores para agricultores -->
+            {% for t in trabajadores %}
+            <tr>
+                <td>{{ t.username }}</td>
+                <td>{{ t.email }}</td>
+                <td>{{ t.role }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <!-- Lista con opciones de edición para técnicos -->
+            {% for t in trabajadores %}
+            <tr>
+                <form method="post" action="/parcelas/trabajadores/actualizar/{{ t.id }}">
+                    <input type="hidden" name="parcela_id" value="{{ parcela_id }}">
+                    <td><input type="text" name="username" value="{{ t.username }}" class="form-control"></td>
+                    <td><input type="email" name="email" value="{{ t.email }}" class="form-control"></td>
+                    <td>
+                        <select name="role" class="form-select">
+                            <option value="agricultor" {% if t.role == "agricultor" %}selected{% endif %}>Agricultor</option>
+                            <option value="agronomo" {% if t.role == "agronomo" %}selected{% endif %}>Agrónomo</option>
+                            <option value="tecnico" {% if t.role == "tecnico" %}selected{% endif %}>Técnico</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
+                        <form method="post" action="/parcelas/trabajadores/borrar/{{ t.id }}" style="display:inline;">
+                            <input type="hidden" name="parcela_id" value="{{ parcela_id }}">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Borrar trabajador?')">Borrar</button>
+                        </form>
+                    </td>
+                </form>
+            </tr>
+            {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+    {% elif parcela_id %}
+        <div class="alert alert-info">No hay trabajadores asignados a esta parcela.</div>
+    {% endif %}
+</div>
+{% endblock %}

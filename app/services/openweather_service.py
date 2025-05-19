@@ -2,6 +2,7 @@ import os
 import requests
 from database import Clima
 from sqlalchemy.orm import Session
+from database import Parcela
 
 class OpenWeatherService:
     def __init__(self):
@@ -33,8 +34,15 @@ class OpenWeatherService:
         response = requests.get(url, params=params)
         response.raise_for_status()
         return response.json()
-
+    
 def guardar_clima(db: Session, data: dict, ubicacion: str):
+    parcela = db.query(Parcela).filter(Parcela.ubicacion == ubicacion).first()
+    if not parcela:
+        print(f"Error: No se encontró una parcela con la ubicación: {ubicacion}")
+        raise ValueError(f"No se encontró una parcela con la ubicación: {ubicacion}")
+
+    print(f"Parcela encontrada: {parcela.id}, Nombre: {parcela.nombre}")
+
     clima = Clima(
         temperatura=data["main"]["temp"],
         humedad=data["main"]["humidity"],
@@ -42,7 +50,8 @@ def guardar_clima(db: Session, data: dict, ubicacion: str):
         viento=data["wind"]["speed"],
         descripcion=data["weather"][0]["description"],
         icono=data["weather"][0]["icon"],
-        ubicacion=ubicacion
+        ubicacion=ubicacion,
+        parcela_id=parcela.id
     )
     db.add(clima)
     db.commit()

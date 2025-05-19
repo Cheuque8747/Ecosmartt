@@ -11,6 +11,7 @@ from database import get_db, Sensor
 from services import sensor_service
 from config import templates, sensor_info
 from services.auth_service import get_current_active_user
+from database import Parcela
 
 router = APIRouter(tags=["sensores"])
 
@@ -312,6 +313,7 @@ async def add_sensor_form(
     sensorRuido: Optional[float] = Form(0.0),
     sensorEstado: str = Form("activo"),
     sensorPromedio: float = Form(...),
+    parcelaId: int = Form(...),  # Nuevo campo para la parcela
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user)
 ):
@@ -319,14 +321,18 @@ async def add_sensor_form(
     # Verificar que el usuario es técnico
     if current_user.role != "tecnico":
         raise HTTPException(status_code=403, detail="Solo los técnicos pueden crear sensores")
-    
-    # Verificamos si el ID ya existe
+
+    # Verificar que la parcela existe
+    parcela = db.query(Parcela).get(parcelaId)
+    if not parcela:
+        raise HTTPException(status_code=404, detail="Parcela no encontrada")
+
+    # Verificar si el ID del sensor ya existe
     sensor_existente = sensor_service.obtener_sensor_por_id(db, sensorId)
-    
     if sensor_existente:
         raise HTTPException(status_code=400, detail="El ID del sensor ya existe")
-    
-    # Creamos el nuevo sensor
+
+    # Crear el sensor
     nuevo_sensor = SensorCreate(
         tipo=sensorTipo,
         frecuencia_lectura=sensorFrecuencia,
@@ -337,25 +343,10 @@ async def add_sensor_form(
         estado=sensorEstado,
         promedio=sensorPromedio
     )
-    
-    # Guardar el sensor
-    sensor_service.crear_sensor(db, nuevo_sensor, sensorId)
-    
-    # Obtener todos los sensores para mostrar en la página
-    sensores = sensor_service.obtener_sensores(db)
-    
-    # Redirigimos a la página principal
-    return templates.TemplateResponse(
-        "index.html", 
-        {
-            "request": request, 
-            "sensores": sensores,
-            "sensor_info": sensor_info,
-            "now": datetime.now(),
-            "success_message": f"Sensor {sensorId} añadido correctamente",
-            "user": current_user
-        }
-    )
+    sensor_service.crear_sensor(db, nuevo_sensor, sensorId, parcelaId)
+
+    # Redirigir a la página principal
+    return RedirectResponse("/", status_code=303)
 
 @router.post("/sensores/edit")
 async def edit_sensor_form(

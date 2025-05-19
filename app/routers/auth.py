@@ -115,7 +115,7 @@ async def read_users(skip: int = 0, limit: int = 100, current_user: User = Depen
 
 @router.put("/users/{user_id}", response_model=UserInDB,
     summary="Actualizar usuario",
-    description="Actualiza los datos de un usuario existente (solo para técnicos).")
+    description="Actualiza los datos de un usuario existente")
 async def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     # Solo los técnicos pueden editar usuarios
     if current_user.role != "tecnico":
@@ -154,3 +154,69 @@ async def logout():
     response = RedirectResponse(url="/auth/login", status_code=303)
     response.delete_cookie("access_token")
     return response
+
+
+@router.get("/perfil", response_class=HTMLResponse, summary="Perfil del usuario")
+async def perfil_usuario(
+    request: Request,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Muestra los atributos del usuario autenticado."""
+    return templates.TemplateResponse(
+        "perfil.html",
+        {"request": request, "user": current_user}
+    )
+
+from fastapi import Form
+from typing import Optional
+from services.auth_service import get_password_hash, verify_password
+@router.post("/perfil/actualizar", response_class=HTMLResponse)
+async def actualizar_perfil(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    current_password: Optional[str] = Form(None),
+    new_password: Optional[str] = Form(None),
+    confirm_password: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Actualiza los datos del usuario autenticado."""
+    # Verificar si el email o username ya están en uso por otro usuario
+    if db.query(User).filter(User.email == email, User.id != current_user.id).first():
+        return templates.TemplateResponse(
+            "perfil.html",
+            {"request": request, "user": current_user, "error": "El correo electrónico ya está en uso."}
+        )
+    if db.query(User).filter(User.username == username, User.id != current_user.id).first():
+        return templates.TemplateResponse(
+            "perfil.html",
+            {"request": request, "user": current_user, "error": "El nombre de usuario ya está en uso."}
+        )
+
+    # Actualizar los datos básicos
+    current_user.username = username
+    current_user.email = email
+
+    # Verificar si se desea cambiar la contraseña
+    if current_password and new_password and confirm_password:
+        if not verify_password(current_password, current_user.hashed_password):
+            return templates.TemplateResponse(
+                "perfil.html",
+                {"request": request, "user": current_user, "error": "La contraseña actual es incorrecta."}
+            )
+        if new_password != confirm_password:
+            return templates.TemplateResponse(
+                "perfil.html",
+                {"request": request, "user": current_user, "error": "Las contraseñas no coinciden."}
+            )
+        current_user.hashed_password = get_password_hash(new_password)
+
+    # Guardar los cambios en la base de datos
+    db.commit()
+    db.refresh(current_user)
+
+    return templates.TemplateResponse(
+        "perfil.html",
+        {"request": request, "user": current_user, "success": "Perfil actualizado correctamente."}
+    )

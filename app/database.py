@@ -28,6 +28,9 @@ class User(Base):
     role = Column(String, default="tecnico")  # tecnico, agronomo, agricultor
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now)
+    # Relación con parcelas
+    parcela_id = Column(Integer, ForeignKey("parcelas.id"), nullable=True)
+    parcela = relationship("Parcela", back_populates="trabajadores")
 
 class Sensor(Base):
     __tablename__ = "sensores"
@@ -45,6 +48,10 @@ class Sensor(Base):
     
     # Relación con las lecturas
     lecturas = relationship("Lectura", back_populates="sensor")
+
+    # Relación con la parcela
+    parcela_id = Column(Integer, ForeignKey("parcelas.id"), nullable=True)
+    parcela = relationship("Parcela", back_populates="sensores")
 
 class Lectura(Base):
     __tablename__ = "lecturas"
@@ -69,7 +76,24 @@ class Clima(Base):
     viento = Column(Float)
     descripcion = Column(String)
     icono = Column(String)
-    ubicacion = Column(String)    
+    ubicacion = Column(String)
+
+    # Relación con la parcela
+    parcela_id = Column(Integer, ForeignKey("parcelas.id"), nullable=True)
+    parcela = relationship("Parcela", back_populates="climas")
+
+class Parcela(Base):
+    __tablename__ = "parcelas"
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String, nullable=False)
+    ubicacion = Column(String, nullable=False)
+    
+    # Relación con sensores
+    sensores = relationship("Sensor", back_populates="parcela")
+    # Relación con trabajadores
+    trabajadores = relationship("User", back_populates="parcela")
+    # Relación con clima
+    climas = relationship("Clima", back_populates="parcela")
 
 # Crear las tablas
 Base.metadata.create_all(bind=engine)

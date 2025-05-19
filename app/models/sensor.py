@@ -12,6 +12,7 @@ class SensorBase(BaseModel):
     ruido: float = Field(0.0, description="Ruido aleatorio en las lecturas")
     ubicacion: str = Field(..., description="Ubicación física del sensor")
     estado: str = Field("activo", description="Estado del sensor: activo o noActivo")
+    parcela_id: Optional[int] = Field(None, description="ID de la parcela asociada al sensor")
     promedio: float = Field(..., description="Valor promedio deseado para las lecturas")
     
     @validator('tipo')
