@@ -39,9 +39,24 @@ from fastapi import Query
 #HTTPException
 from fastapi.exceptions import HTTPException
 
-# Rutas para la API
-@app.get("/", response_class=HTMLResponse)
-async def index(
+# NUEVA RUTA DE INICIO/PRESENTACIÓN
+@app.get("/inicio", response_class=HTMLResponse)
+async def inicio(request: Request):
+    """Página de presentación/inicio de EcoSmart"""
+    return templates.TemplateResponse(
+        "inicio.html",
+        {"request": request}
+    )
+
+# Ruta raíz redirige al inicio
+@app.get("/", response_class=RedirectResponse)
+async def root():
+    """Redirige la raíz al inicio"""
+    return RedirectResponse(url="/inicio")
+
+# RUTA DE SENSORES (antigua página principal)
+@app.get("/sensores", response_class=HTMLResponse)
+async def sensores_page(
     request: Request,
     db: Session = Depends(get_db),
     current_user: Optional[dict] = Depends(get_current_active_user),
@@ -50,7 +65,7 @@ async def index(
     estado: Optional[str] = None,
     ubicacion: Optional[str] = None
 ):
-    """Renderiza la página principal con sensores filtrados según el rol del usuario"""
+    """Renderiza la página de gestión de sensores filtrados según el rol del usuario"""
     if not current_user:
         return RedirectResponse(url="/auth/login")
 
