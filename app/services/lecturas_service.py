@@ -1,4 +1,3 @@
-
 import random
 from sqlalchemy.orm import Session
 from database import Sensor, Lectura
@@ -43,7 +42,7 @@ def cargar_historial_lecturas(db: Session, sensor_id: Optional[str] = None) -> D
     return result
 
 def guardar_lectura(db: Session, sensor_id: str, valor: float, timestamp: datetime, unidad: str, tipo_sensor: str) -> Lectura:
-    """Guarda una lectura en la base de datos"""
+    """Guarda una lectura en la base de datos sin límites"""
     # Crear nueva lectura
     nueva_lectura = Lectura(
         sensor_id=sensor_id,
@@ -58,20 +57,7 @@ def guardar_lectura(db: Session, sensor_id: str, valor: float, timestamp: dateti
     db.commit()
     db.refresh(nueva_lectura)
     
-    # Verificar si hay más de 100 lecturas para este sensor
-    count = db.query(Lectura).filter(Lectura.sensor_id == sensor_id).count()
-    
-    # Si hay más de 100, eliminar las más antiguas
-    if count > 100:
-        # Obtener las lecturas más antiguas que exceden el límite
-        lecturas_antiguas = db.query(Lectura).filter(Lectura.sensor_id == sensor_id).order_by(Lectura.timestamp).limit(count - 100).all()
-        
-        # Eliminar las lecturas antiguas
-        for lectura in lecturas_antiguas:
-            db.delete(lectura)
-        
-        db.commit()
-    
+    # Sin límite de lecturas - se guardan todas
     return nueva_lectura
 
 def generar_lectura(db: Session, sensor: Sensor, ignore_time_check: bool = False) -> Optional[float]:
@@ -131,9 +117,36 @@ def generar_lecturas_periodicamente(db: Session, sensor_info: Dict[str, Dict[str
         import time
         time.sleep(10)
 
-def obtener_lecturas_sensor(db: Session, sensor_id: str, limit: int = 100) -> List[Lectura]:
+def obtener_lecturas_sensor(db: Session, sensor_id: str, limit: Optional[int] = None) -> List[Lectura]:
     """Obtiene las lecturas de un sensor específico"""
-    return db.query(Lectura).filter(Lectura.sensor_id == sensor_id).order_by(desc(Lectura.timestamp)).limit(limit).all()
+    query = db.query(Lectura).filter(Lectura.sensor_id == sensor_id).order_by(desc(Lectura.timestamp))
+    
+    if limit:
+        return query.limit(limit).all()
+    else:
+        return query.all()
+
+def obtener_lecturas_sensor_paginadas(db: Session, sensor_id: str, page: int = 1, per_page: int = 10) -> Dict[str, Any]:
+    """Obtiene las lecturas de un sensor con paginación"""
+    # Calcular offset
+    offset = (page - 1) * per_page
+    
+    # Obtener lecturas paginadas
+    lecturas = db.query(Lectura).filter(Lectura.sensor_id == sensor_id).order_by(desc(Lectura.timestamp)).offset(offset).limit(per_page).all()
+    
+    # Obtener total de lecturas para calcular páginas
+    total_lecturas = db.query(Lectura).filter(Lectura.sensor_id == sensor_id).count()
+    total_pages = (total_lecturas + per_page - 1) // per_page  # Redondear hacia arriba
+    
+    return {
+        "lecturas": lecturas,
+        "page": page,
+        "per_page": per_page,
+        "total_lecturas": total_lecturas,
+        "total_pages": total_pages,
+        "has_prev": page > 1,
+        "has_next": page < total_pages
+    }
 
 def obtener_estadisticas_sensor(db: Session, sensor_id: str) -> Dict[str, float]:
     """Obtiene estadísticas de las lecturas de un sensor"""

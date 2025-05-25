@@ -71,11 +71,10 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <p>Rol: {{ user.role if user else 'No autenticado' }}</p>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-ecosmart">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="/inicio">
                 <i class="fas fa-leaf me-2"></i>EcoSmart
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,8 +82,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+
                     <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i> Inicio</a>
+                        <a class="nav-link" href="/sensores"><i class="fas fa-microchip me-1"></i> Sensores</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/ia/chat"><i class="fas fa-robot me-1"></i> Asistente IA</a>
@@ -104,10 +104,6 @@
                     {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="/parcelas/trabajadores"><i class="fas fa-users me-1"></i> Trabajadores por Parcela</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="/docs"><i class="fas fa-book-open me-1"></i> Documentación API</a>
                     </li>
                 </ul>
                 <div class="d-flex">
