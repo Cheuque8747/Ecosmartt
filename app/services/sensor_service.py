@@ -31,7 +31,7 @@ def filtrar_sensores(db: Session, tipo: Optional[str] = None, estado: Optional[s
 def crear_sensor(db: Session, sensor: SensorCreatePydantic, sensor_id: str, parcela_id: int) -> Sensor:
     """Crea un nuevo sensor en la base de datos"""
     db_sensor = Sensor(
-        id=sensor_id,
+        id=sensor_id, # ID único del sensor
         tipo=sensor.tipo,
         frecuencia_lectura=sensor.frecuencia_lectura,
         max_lectura=sensor.max_lectura,

@@ -304,7 +304,7 @@ async def export_sensor_readings(
 @router.post("/sensores/add")
 async def add_sensor_form(
     request: Request,
-    sensorId: str = Form(...),
+    #se quito el campo sensorId ya que no es necesario al crear un nuevo sensor
     sensorTipo: str = Form(...),
     sensorUbicacion: str = Form(...),
     sensorFrecuencia: int = Form(...),
@@ -327,10 +327,9 @@ async def add_sensor_form(
     if not parcela:
         raise HTTPException(status_code=404, detail="Parcela no encontrada")
 
-    # Verificar si el ID del sensor ya existe
-    sensor_existente = sensor_service.obtener_sensor_por_id(db, sensorId)
-    if sensor_existente:
-        raise HTTPException(status_code=400, detail="El ID del sensor ya existe")
+    # Generar un ID único para el sensor
+    total_sensores = db.query(Sensor).count()
+    sensorId = str(total_sensores + 1).zfill(3)
 
     # Crear el sensor
     nuevo_sensor = SensorCreate(
