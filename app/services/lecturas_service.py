@@ -1,4 +1,3 @@
-
 import random
 from sqlalchemy.orm import Session
 from database import Sensor, Lectura
@@ -134,6 +133,28 @@ def generar_lecturas_periodicamente(db: Session, sensor_info: Dict[str, Dict[str
 def obtener_lecturas_sensor(db: Session, sensor_id: str, limit: int = 100) -> List[Lectura]:
     """Obtiene las lecturas de un sensor específico"""
     return db.query(Lectura).filter(Lectura.sensor_id == sensor_id).order_by(desc(Lectura.timestamp)).limit(limit).all()
+
+def obtener_lecturas_sensor_paginadas(db: Session, sensor_id: str, page: int = 1, per_page: int = 10) -> Dict[str, Any]:
+    """Obtiene las lecturas de un sensor con paginación"""
+    # Calcular offset
+    offset = (page - 1) * per_page
+    
+    # Obtener lecturas paginadas
+    lecturas = db.query(Lectura).filter(Lectura.sensor_id == sensor_id).order_by(desc(Lectura.timestamp)).offset(offset).limit(per_page).all()
+    
+    # Obtener total de lecturas para calcular páginas
+    total_lecturas = db.query(Lectura).filter(Lectura.sensor_id == sensor_id).count()
+    total_pages = (total_lecturas + per_page - 1) // per_page  # Redondear hacia arriba
+    
+    return {
+        "lecturas": lecturas,
+        "page": page,
+        "per_page": per_page,
+        "total_lecturas": total_lecturas,
+        "total_pages": total_pages,
+        "has_prev": page > 1,
+        "has_next": page < total_pages
+    }
 
 def obtener_estadisticas_sensor(db: Session, sensor_id: str) -> Dict[str, float]:
     """Obtiene estadísticas de las lecturas de un sensor"""
