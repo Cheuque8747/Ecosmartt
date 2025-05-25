@@ -30,9 +30,9 @@
     <form method="get" action="/" class="row g-3 mb-4">
         <div class="col-md-6">
             <select name="parcela_id" class="form-select" onchange="this.form.submit()">
-                <option value="">Seleccione una parcela</option>
+                <option value="-1" {% if parcela_id == -1 %}selected{% endif %}>Seleccione una parcela</option>
                 {% for p in parcelas %}
-                <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
+                <option value="{{ p.id }}" {% if parcela_id == p.id %}selected{% endif %}>
                     {{ p.nombre }}
                 </option>
                 {% endfor %}
@@ -418,7 +418,7 @@
             method: 'PUT'
         })
         .then(response => response.json())
-        .then(data => {
+        .then data => {
             // Recargamos la página para reflejar el cambio
             location.reload();
         });

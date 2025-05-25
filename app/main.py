@@ -45,11 +45,17 @@ async def index(
     request: Request,
     db: Session = Depends(get_db),
     current_user: Optional[dict] = Depends(get_current_active_user),
-    parcela_id: Optional[int] = None,
+    parcela_id: Optional[str] = Query(None),  # Cambiar a Optional[str] para aceptar cadenas vacías
     tipo: Optional[str] = None,
     estado: Optional[str] = None,
     ubicacion: Optional[str] = None
 ):
+    # Convertir cadena vacía a None
+    if parcela_id == "":
+        parcela_id = None
+    else:
+        parcela_id = int(parcela_id) if parcela_id else None
+
     """Renderiza la página principal con sensores filtrados según el rol del usuario"""
     if not current_user:
         return RedirectResponse(url="/auth/login")
