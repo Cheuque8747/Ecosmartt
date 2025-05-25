@@ -1,4 +1,3 @@
-
 # database.py - Actualizado para SQLite
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -98,6 +97,7 @@ class Parcela(Base):
 # Crear las tablas
 Base.metadata.create_all(bind=engine)
 
+
 # Función para obtener la sesión de base de datos
 def get_db():
     db = SessionLocal()
@@ -105,3 +105,32 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def init_db():
+    db = SessionLocal()
+    try:
+        # Verificar si ya existe algún usuario
+        user = db.query(User).first()
+        if not user:
+            from services.auth_service import get_password_hash  # Importar la función de hash
+            
+            # Crear usuario administrador por defecto
+            default_user = User(
+                username="admin",
+                email="admin@ecosmartt.com",
+                hashed_password=get_password_hash("admin123"), 
+                role="tecnico",
+                is_active=True
+            )
+            db.add(default_user)
+            db.commit()
+            print("Usuario administrador creado con éxito")
+    except Exception as e:
+        print(f"Error al crear usuario por defecto: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+# Llamar a la función de inicialización
+init_db()
+
