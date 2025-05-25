@@ -345,8 +345,8 @@ async def add_sensor_form(
     )
     sensor_service.crear_sensor(db, nuevo_sensor, sensorId, parcelaId)
 
-    # Redirigir a la página principal
-    return RedirectResponse("/", status_code=303)
+    # CORREGIDO: Redirigir a /sensores en lugar de /
+    return RedirectResponse("/sensores", status_code=303)
 
 @router.post("/sensores/edit")
 async def edit_sensor_form(
@@ -389,18 +389,5 @@ async def edit_sensor_form(
     # Actualizar el sensor
     sensor_service.actualizar_sensor(db, sensorId, sensor_data)
     
-    # Obtener todos los sensores para mostrar en la página
-    sensores = sensor_service.obtener_sensores(db)
-    
-    # Redirigimos a la página principal
-    return templates.TemplateResponse(
-        "index.html", 
-        {
-            "request": request, 
-            "sensores": sensores,
-            "sensor_info": sensor_info,
-            "now": datetime.now(),
-            "success_message": f"Sensor {sensorId} actualizado correctamente",
-            "user": current_user
-        }
-    )
+    # CORREGIDO: Redirigir a /sensores en lugar de renderizar template
+    return RedirectResponse("/sensores", status_code=303)
