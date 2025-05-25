@@ -19,13 +19,19 @@ from database import Parcela
 @router.get("/vista", response_class=HTMLResponse)
 async def vista_clima(
     request: Request,
-    parcela_id: Optional[int] = Query(None),
+    parcela_id: Optional[str] = Query(None),  # Cambiar a Optional[str] para aceptar cadenas vacías
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     """Muestra el clima actual y el pronóstico según el rol del usuario"""
     parcela = None
     ciudad = None
+
+    # Convertir cadena vacía a None
+    if parcela_id == "":
+        parcela_id = None
+    else:
+        parcela_id = int(parcela_id) if parcela_id else None
 
     if current_user.role == "agricultor":
         # Solo mostrar el clima de la parcela del agricultor
@@ -54,11 +60,6 @@ async def vista_clima(
     if parcela:
         pronostico = weather_service.get_forecast(parcela.ubicacion)
 
-    """
-    if parcela:
-        print(f"Parcela seleccionada: {parcela.id}, Ubicación: {parcela.ubicacion}")
-        print(f"Clima actual encontrado: {clima_actual}")
-    """
     return templates.TemplateResponse(
         "clima.html",
         {
@@ -94,10 +95,16 @@ def clima_pronostico(ciudad: str = Query(..., description="Nombre de la ciudad")
 @router.get("/historial", response_class=HTMLResponse)
 def historial_clima(
     request: Request,
-    parcela_id: Optional[int] = Query(None),
+    parcela_id: Optional[str] = Query(None),  # Cambiar a Optional[str] para aceptar cadenas vacías
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
+    # Convertir cadena vacía a None
+    if parcela_id == "":
+        parcela_id = None
+    else:
+        parcela_id = int(parcela_id) if parcela_id else None
+
     """Muestra el historial de clima según el rol del usuario"""
     if current_user.role == "agricultor":
         # Solo mostrar el historial de la parcela del agricultor
@@ -127,6 +134,3 @@ def historial_clima(
             "parcela_id": parcela_id
         }
     )
-
-
-
