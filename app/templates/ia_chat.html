@@ -17,15 +17,154 @@
         display: flex;
         flex-direction: column;
     }
+
     .container-chat {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
+        display: grid;
+        grid-template-columns: 280px 1fr 300px;
+        gap: 20px;
         min-height: 80vh;
     }
+    
+    /* Historial Sidebar (Izquierda) */
+    .history-sidebar {
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        max-height: 80vh;
+    }
+    
+    .history-header {
+        padding: 18px 20px;
+        background-color: var(--ecosmart-dark);
+        color: white;
+        font-weight: 500;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .history-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
+    }
+    
+    .history-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .history-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .history-item:hover {
+        background-color: var(--ecosmart-light);
+    }
+    
+    .history-item.active {
+        background-color: var(--ecosmart-light);
+        border-left: 3px solid var(--ecosmart-primary);
+    }
+    
+    .history-title {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #333;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .history-date {
+        font-size: 0.7rem;
+        color: #888;
+    }
+    
+    .history-actions {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-top: 1px solid #e0e0e0;
+        gap: 8px;
+    }
+    
+    /* Templates Sidebar (Derecha) */
+    .templates-sidebar {
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        max-height: 80vh;
+    }
+    
+    .templates-header {
+        padding: 18px 20px;
+        background-color: var(--ecosmart-secondary);
+        color: white;
+        font-weight: 500;
+        font-size: 1rem;
+    }
+    
+    .templates-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+    }
+    
+    .template-item {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .template-item:hover {
+        border-color: var(--ecosmart-primary);
+        box-shadow: 0 2px 12px rgba(44, 140, 99, 0.15);
+        background: white;
+    }
+    
+    .template-title {
+        font-weight: 600;
+        color: var(--ecosmart-dark);
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+    }
+    
+    .template-description {
+        font-size: 0.8rem;
+        color: #666;
+        line-height: 1.4;
+    }
+    
+    .template-category {
+        display: inline-block;
+        background: var(--ecosmart-light);
+        color: var(--ecosmart-dark);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.65rem;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+    
+    /* Chat Container (Centro) */
     .chat-container {
-        width: 100%;
-        max-width: 1200px;
         min-height: 600px;
         display: flex;
         flex-direction: column;
@@ -33,9 +172,8 @@
         border-radius: 16px;
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
         overflow: hidden;
-        margin-top: 24px;
-        margin-bottom: 24px;
     }
+  
     .chat-header {
         padding: 18px 28px;
         background-color: var(--ecosmart-primary);
@@ -46,6 +184,7 @@
         align-items: center;
         font-size: 1.2rem;
     }
+
     .chat-messages {
         flex-grow: 1;
         overflow-y: auto;
@@ -55,6 +194,7 @@
         flex-direction: column;
         gap: 18px;
     }
+  
     .message {
         max-width: 75%;
         padding: 16px 20px 16px 20px;
@@ -68,22 +208,25 @@
         margin-right: 64px;
         min-height: 56px;
     }
+
     .user-message {
         align-self: flex-end;
         background-color: var(--ecosmart-secondary);
         color: white;
         border-bottom-right-radius: 6px;
-        margin-left: 60%;
+        margin-left: 25%;
         margin-right: 0;
     }
+
     .ai-message {
         align-self: flex-start;
         background-color: white;
         border: 1px solid #e0e0e0;
         border-bottom-left-radius: 6px;
-        margin-right: 35%;
+        margin-right: 25%;
         margin-left: 0;
     }
+    
     .message-avatar {
         position: absolute;
         width: 44px;
@@ -97,11 +240,13 @@
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
         z-index: 2;
     }
+  
     .user-avatar {
         right: -32px;
         background-color: var(--ecosmart-secondary);
         color: white;
     }
+
     .ai-avatar {
         left: -32px;
         background-color: white;
@@ -238,53 +383,99 @@
         0%, 100% { transform: scale(1); opacity: 0.4; }
         50% { transform: scale(1.2); opacity: 1; }
     }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     
     /* Personalizar scrollbar */
-    .chat-messages::-webkit-scrollbar {
+    .chat-messages::-webkit-scrollbar,
+    .history-content::-webkit-scrollbar,
+    .templates-content::-webkit-scrollbar {
         width: 6px;
     }
     
-    .chat-messages::-webkit-scrollbar-track {
+    .chat-messages::-webkit-scrollbar-track,
+    .history-content::-webkit-scrollbar-track,
+    .templates-content::-webkit-scrollbar-track {
         background: var(--ecosmart-light);
     }
     
-    .chat-messages::-webkit-scrollbar-thumb {
+    .chat-messages::-webkit-scrollbar-thumb,
+    .history-content::-webkit-scrollbar-thumb,
+    .templates-content::-webkit-scrollbar-thumb {
         background: #c1c1c1;
         border-radius: 3px;
     }
     
-    .chat-messages::-webkit-scrollbar-thumb:hover {
+    .chat-messages::-webkit-scrollbar-thumb:hover,
+    .history-content::-webkit-scrollbar-thumb:hover,
+    .templates-content::-webkit-scrollbar-thumb:hover {
         background: #a1a1a1;
     }
     
-    /* Estilos para smartphones */
+    /* Responsivo */
+    @media (max-width: 1200px) {
+        .container-chat {
+            grid-template-columns: 250px 1fr 250px;
+        }
+        
+        .template-item {
+            padding: 12px;
+        }
+        
+        .template-title {
+            font-size: 0.85rem;
+        }
+        
+        .template-description {
+            font-size: 0.75rem;
+        }
+    }
+    
     @media (max-width: 768px) {
+        .container-chat {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto 1fr;
+            gap: 16px;
+        }
+        
+        .history-sidebar {
+            order: 1;
+            max-height: 200px;
+        }
+        
+        .templates-sidebar {
+            order: 3;
+            max-height: 250px;
+        }
+        
         .chat-container {
-            height: calc(100vh - 160px);
-            border-radius: 0;
-            margin-top: 10px;
+            order: 2;
+            min-height: 400px;
         }
         
         .message {
-            max-width: 65%; /* antes 75% */
+            max-width: 85%;
             margin-left: 40px;
             margin-right: 40px;
         }
         
         .user-message {
-            margin-left: 35%;
+            margin-left: 15%;
             margin-right: 0;
         }
         
         .ai-message {
-            margin-right: 35%;
+            margin-right: 15%;
             margin-left: 0;
         }
         
         .message-avatar {
             width: 28px;
             height: 28px;
-            font-size: 12px;
+            font-size: 14px;
         }
         
         .user-avatar {
@@ -294,70 +485,191 @@
         .ai-avatar {
             left: -36px;
         }
-        
-        .input-area {
-            padding: 12px;
-        }
-        
-        .chat-header {
-            padding: 12px 16px;
-        }
     }
+    
+    /* Utility classes */
+    .btn-icon {
+        background: none;
+        border: none;
+        color: #666;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    
+    .btn-icon:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .templates-sidebar .btn-icon:hover {
+        background-color: var(--ecosmart-light);
+        color: var(--ecosmart-primary);
+    }
+    
+    .empty-state {
+        text-align: center;
+        color: #888;
+        font-size: 0.85rem;
+        padding: 20px;
+        font-style: italic;
+    }
+    
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+        margin: 12px 0;
+    }
+    
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4 flex-grow-1">
     <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-8">
+        <div class="col-12">
             <h4 class="mb-3 d-flex align-items-center">
                 <i class="fas fa-robot me-2" style="color: var(--ecosmart-primary);"></i>
                 Asistente IA - EcoSmart
             </h4>
-            
-            <div class="chat-container">
-                <div class="chat-header">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-robot me-2"></i>
-                        <span>Chat con IA</span>
+            <div class="container-chat">
+                <!-- Historial Sidebar (Izquierda) -->
+                <div class="history-sidebar">
+                    <div class="history-header">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-history me-2"></i>
+                            <span>Historial</span>
+                        </div>
+                        <button class="btn-icon" id="new-chat" title="Nueva conversación">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
-                    <button class="btn btn-sm btn-outline-light" id="clear-chat" title="Limpiar chat">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    
+                    <div class="history-content">
+                        <ul class="history-list" id="history-list">
+                            <!-- Historial se carga dinámicamente -->
+                        </ul>
+                    </div>
+                    
+                    <div class="history-actions">
+                        <button class="btn-icon" id="clear-history" title="Limpiar historial">
+                            <i class="fas fa-trash me-1"></i>Limpiar
+                        </button>
+                    </div>
                 </div>
                 
-                <div id="chat-box" class="chat-messages">
-                    <!-- Mensaje de bienvenida -->
-                    <div class="message ai-message">
-                        <div class="message-avatar ai-avatar">
-                            <i class="fas fa-robot"></i>
+                <!-- Chat Principal (Centro) -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-robot me-2"></i>
+                            <span id="chat-title">Nueva Conversación</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-light" id="save-chat" title="Guardar conversación">
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-light" id="clear-chat" title="Limpiar chat">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="chat-box" class="chat-messages">
+                        <!-- Mensaje de bienvenida -->
+                        <div class="message ai-message">
+                            <div class="message-avatar ai-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-sender">EcoSmart IA</div>
+                                <div class="message-text">¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy? Puedes usar las plantillas predefinidas de la derecha para consultas comunes o hacer preguntas específicas sobre agricultura inteligente.</div>
+                            </div>
                         </div>
                         <div class="message-content">
                             <div class="message-sender">EcoSmart IA</div>
                             <div class="message-text">¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy?</div>
                         </div>
+                    </div> 
+                    <div class="input-area">
+                        <form id="chat-form" autocomplete="off">
+                            <div class="input-group input-box">
+                                <input type="text" id="user-input" class="form-control border-0 shadow-none" 
+                                       placeholder="Escribe tu pregunta o usa una plantilla..." required>
+                                <button class="btn send-button" type="submit" id="send-button">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 
-                <!-- Indicador de escritura -->
-                <div id="typing-indicator" class="typing-indicator">
-                    <div class="typing-dots">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
+                <!-- Templates Sidebar (Derecha) -->
+                <div class="templates-sidebar">
+                    <div class="templates-header">
+                        <i class="fas fa-file-alt me-2"></i>
+                        Consultas Comunes
                     </div>
-                </div>
-                
-                <div class="input-area">
-                    <form id="chat-form" autocomplete="off">
-                        <div class="input-group input-box">
-                            <input type="text" id="user-input" class="form-control border-0 shadow-none" 
-                                   placeholder="Escribe tu pregunta..." required>
-                            <button class="btn send-button" type="submit" id="send-button" disabled>
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
+                    
+                    <div class="templates-content">
+                        <!-- Plantillas predefinidas -->
+                        <div class="template-item" data-template="diagnostico">
+                            <div class="template-category">Diagnóstico</div>
+                            <div class="template-title">Problemas en Cultivos</div>
+                            <div class="template-description">Ayuda para diagnosticar problemas específicos basado en síntomas observados.</div>
                         </div>
-                    </form>
+                        
+                        <div class="template-item" data-template="riego">
+                            <div class="template-category">Optimización</div>
+                            <div class="template-title">Sistema de Riego</div>
+                            <div class="template-description">Recomendaciones para optimizar el riego según datos de sensores.</div>
+                        </div>
+                        
+                        <div class="template-item" data-template="clima">
+                            <div class="template-category">Predicción</div>
+                            <div class="template-title">Análisis Climático</div>
+                            <div class="template-description">Análisis del impacto del clima en cultivos y medidas preventivas.</div>
+                        </div>
+                        
+                        <div class="template-item" data-template="sensores">
+                            <div class="template-category">Análisis</div>
+                            <div class="template-title">Datos de Sensores</div>
+                            <div class="template-description">Interpretación de tendencias y patrones en datos de sensores.</div>
+                        </div>
+                        
+                        <div class="section-divider"></div>
+                        
+                        <div class="template-item" data-template="plagas">
+                            <div class="template-category">Diagnóstico</div>
+                            <div class="template-title">Identificación de Plagas</div>
+                            <div class="template-description">Ayuda para identificar y tratar plagas comunes en cultivos.</div>
+                        </div>
+                        
+                        <div class="template-item" data-template="fertilizacion">
+                            <div class="template-category">Optimización</div>
+                            <div class="template-title">Plan de Fertilización</div>
+                            <div class="template-description">Recomendaciones de fertilización basadas en tipo de cultivo.</div>
+                        </div>
+                        
+                        <div class="template-item" data-template="cosecha">
+                            <div class="template-category">Predicción</div>
+                            <div class="template-title">Momento de Cosecha</div>
+                            <div class="template-description">Determinación del mejor momento para cosechar.</div>
+                        </div>
+                        
+                        <div class="template-item" data-template="rendimiento">
+                            <div class="template-category">Análisis</div>
+                            <div class="template-title">Análisis de Rendimiento</div>
+                            <div class="template-description">Evaluación del rendimiento del cultivo y factores que lo afectan.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -368,20 +680,57 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Referencias a elementos
         const chatBox = document.getElementById('chat-box');
         const chatForm = document.getElementById('chat-form');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         const typingIndicator = document.getElementById('typing-indicator');
         const clearChatBtn = document.getElementById('clear-chat');
+        const saveChatBtn = document.getElementById('save-chat');
+        const newChatBtn = document.getElementById('new-chat');
+        const clearHistoryBtn = document.getElementById('clear-history');
+        const chatTitle = document.getElementById('chat-title');
+        const historyList = document.getElementById('history-list');
         
         // Variables de estado
         let messages = [
-            {role: 'assistant', content: '¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy?'}
+            {role: 'assistant', content: '¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy? Puedes usar las plantillas predefinidas de la derecha para consultas comunes o hacer preguntas específicas sobre agricultura inteligente.'}
         ];
         let isWaitingForResponse = false;
+        let currentChatId = null;
+        
+        // Plantillas predefinidas
+        const templates = {
+            diagnostico: "Necesito ayuda para diagnosticar un problema en mi cultivo. He notado los siguientes síntomas: [describe los síntomas observados]. El problema comenzó hace [tiempo] y las condiciones climáticas recientes han sido [describe clima]. ¿Qué podría estar causando esto y qué tratamiento recomiendas?",
+            
+            riego: "Ayúdame a optimizar el riego para mi cultivo de [tipo de cultivo]. Los datos actuales de mis sensores muestran: humedad del suelo [%], temperatura [°C], y conductividad [dS/m]. El cultivo está en etapa de [crecimiento/floración/fructificación]. ¿Cuál es la frecuencia y cantidad de riego recomendada?",
+            
+            clima: "Analiza el impacto del pronóstico climático en mi cultivo de [tipo de cultivo]. Las condiciones actuales son [temperatura, humedad, viento] y el pronóstico para los próximos días indica [condiciones esperadas]. ¿Qué medidas preventivas debería tomar?",
+            
+            sensores: "Analiza los datos de mi sensor de [tipo de sensor] de los últimos [período]. El valor promedio es [valor], con un mínimo de [min] y máximo de [max]. He notado una tendencia [ascendente/descendente/estable]. ¿Hay algún patrón preocupante y qué recomendaciones tienes?",
+            
+            plagas: "Creo que mi cultivo de [tipo de cultivo] puede tener plagas. He observado [síntomas: manchas en hojas, agujeros, decoloración, etc.] en [parte de la planta]. Las condiciones ambientales son [temperatura, humedad]. ¿Qué plaga podría ser y cómo la trato?",
+            
+            fertilizacion: "Necesito un plan de fertilización para mi cultivo de [tipo de cultivo] en [etapa de crecimiento]. El tipo de suelo es [arcilloso/arenoso/limoso] y el pH del suelo es [valor]. Los datos de conductividad muestran [valor]. ¿Qué fertilizantes y frecuencia recomiendas?",
+            
+            cosecha: "¿Cuál es el momento óptimo para cosechar mi cultivo de [tipo de cultivo]? La planta fue sembrada hace [tiempo], las condiciones ambientales promedio han sido [temperatura, humedad], y actualmente observo [estado de la planta/frutos]. ¿Qué indicadores debo monitorear?",
+            
+            rendimiento: "Evalúa el rendimiento de mi cultivo de [tipo de cultivo]. Los datos de sensores muestran: temperatura promedio [°C], humedad [%], pH del suelo [valor]. La producción esperada era [cantidad] pero estoy obteniendo [cantidad actual]. ¿Qué factores podrían estar afectando el rendimiento?"
+        };
+        
+        // Habilitar botón de envío cuando hay texto
+        userInput.addEventListener('input', function() {
+            sendButton.disabled = this.value.trim() === '' || isWaitingForResponse;
+        });
         
         // Funciones de utilidad
+        function getShortTitle(firstMessage) {
+            if (!firstMessage) return 'Nueva Conversación';
+            const words = firstMessage.split(' ').slice(0, 5);
+            return words.join(' ') + (firstMessage.split(' ').length > 5 ? '...' : '');
+        }
+        
         function showTypingIndicator() {
             typingIndicator.style.display = 'flex';
             scrollToBottom();
@@ -398,15 +747,11 @@
         }
         
         function formatMessage(content) {
-            // Convertir URLs en enlaces clickeables
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             let formatted = content.replace(urlRegex, url => 
                 `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
             );
-            
-            // Convertir saltos de línea en <br>
             formatted = formatted.replace(/\n/g, '<br>');
-            
             return formatted;
         }
         
@@ -416,7 +761,7 @@
             if (messages.length === 0) {
                 messages.push({
                     role: 'assistant', 
-                    content: '¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy?'
+                    content: '¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy? Puedes usar las plantillas predefinidas de la derecha para consultas comunes o hacer preguntas específicas sobre agricultura inteligente.'
                 });
             }
             
@@ -437,7 +782,6 @@
                 
                 chatBox.appendChild(messageDiv);
             });
-            
             scrollToBottom();
         }
         
@@ -446,62 +790,251 @@
             renderMessages();
         }
         
-        // Event listeners
-        userInput.addEventListener('input', function() {
-            sendButton.disabled = this.value.trim() === '' || isWaitingForResponse;
-        });
-        
-        chatForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const text = userInput.value.trim();
-            if (!text || isWaitingForResponse) return;
+        // Función principal para enviar mensaje a la IA
+        async function sendMessage(userMessage) {
+            if (!userMessage.trim() || isWaitingForResponse) return;
             
-            // Añadir mensaje del usuario
-            addMessage('user', text);
-            userInput.value = '';
-            sendButton.disabled = true;
-            isWaitingForResponse = true;
+            // Agregar mensaje del usuario
+            addMessage('user', userMessage);
             
             // Mostrar indicador de escritura
             showTypingIndicator();
-
-            // --- AQUÍ VA LA LLAMADA REAL AL BACKEND ---
+            isWaitingForResponse = true;
+            sendButton.disabled = true;
+            userInput.disabled = true;
+            
             try {
+                // Enviar a la API de IA
                 const response = await fetch('/ia/chat', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({messages})
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: messages
+                    })
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                
+                // Verificar si hay respuesta de la IA
+                let aiResponse = 'Lo siento, no pude procesar tu consulta en este momento.';
+                
+                if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+                    aiResponse = data.choices[0].message.content;
+                } else if (data.error) {
+                    aiResponse = `Error: ${data.error}`;
+                }
+                
+                // Agregar respuesta de la IA
+                addMessage('assistant', aiResponse);
+                
+                // Guardar chat automáticamente si hay más de solo el mensaje de bienvenida
+                if (messages.length > 2) {
+                    await saveCurrentChat();
+                }
+                
+            } catch (error) {
+                console.error('Error al enviar mensaje:', error);
+                addMessage('assistant', 'Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo.');
+            } finally {
+                // Ocultar indicador y rehabilitar controles
                 hideTypingIndicator();
-                let aiMsg = data.choices?.[0]?.message?.content || 'No se pudo obtener respuesta de la IA.';
-                addMessage('assistant', aiMsg);
-            } catch (err) {
-                hideTypingIndicator();
-                addMessage('assistant', 'Error al conectar con el asistente IA.');
+                isWaitingForResponse = false;
+                sendButton.disabled = false;
+                userInput.disabled = false;
+                userInput.focus();
             }
-            isWaitingForResponse = false;
-            userInput.focus();
+        }
+        
+        // Event listeners
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (message) {
+                userInput.value = '';
+                await sendMessage(message);
+            }
         });
         
+        // Template clicks
+        document.querySelectorAll('.template-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const templateKey = this.dataset.template;
+                const templateText = templates[templateKey];
+                if (templateText) {
+                    userInput.value = templateText;
+                    userInput.focus();
+                    sendButton.disabled = false;
+                }
+            });
+        });
+        
+        // Botón nuevo chat
+        newChatBtn.addEventListener('click', newChat);
+        
+        // Botón limpiar chat
         clearChatBtn.addEventListener('click', function() {
-            if (confirm('¿Estás seguro de que deseas limpiar el historial del chat?')) {
-                messages = [];
-                renderMessages();
+            if (confirm('¿Estás seguro de que deseas limpiar esta conversación?')) {
+                newChat();
             }
         });
         
-        // Inicialización
+        // Botón guardar chat
+        saveChatBtn.addEventListener('click', async function() {
+            const saved = await saveCurrentChat();
+            if (saved) {
+                alert('Conversación guardada correctamente');
+            } else {
+                alert('Error al guardar la conversación');
+            }
+        });
+        
+        // Botón limpiar historial
+        clearHistoryBtn.addEventListener('click', clearHistory);
+        
+        // Funciones para API
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/api/chat-ia/history');
+                if (response.ok) {
+                    const history = await response.json();
+                    updateHistoryList(history);
+                } else {
+                    console.error('Error al cargar historial');
+                }
+            } catch (error) {
+                console.error('Error al cargar historial:', error);
+            }
+        }
+        
+        async function loadChat(chatId) {
+            try {
+                const response = await fetch(`/api/chat-ia/${chatId}`);
+                if (response.ok) {
+                    const chat = await response.json();
+                    currentChatId = chatId;
+                    messages = chat.messages;
+                    renderMessages();
+                    updateChatTitle(chat.title);
+                    updateHistoryActiveItem(chatId);
+                } else {
+                    console.error('Error al cargar chat');
+                }
+            } catch (error) {
+                console.error('Error al cargar chat:', error);
+            }
+        }
+        
+        async function saveCurrentChat() {
+            if (messages.length <= 1) return false; // No guardar si solo tiene el mensaje de bienvenida
+            
+            const firstUserMessage = messages.find(m => m.role === 'user');
+            const title = firstUserMessage ? getShortTitle(firstUserMessage.content) : 'Nueva Conversación';
+            
+            try {
+                const response = await fetch('/api/chat-ia/save', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        id: currentChatId,
+                        title: title,
+                        messages: messages
+                    })
+                });
+                
+                if (response.ok) {
+                    const savedChat = await response.json();
+                    currentChatId = savedChat.id;
+                    updateChatTitle(savedChat.title);
+                    loadChatHistory(); // Recargar historial
+                    return true;
+                } else {
+                    console.error('Error al guardar chat');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error al guardar chat:', error);
+                return false;
+            }
+        }
+        
+        async function clearHistory() {
+            if (confirm('¿Estás seguro de que deseas eliminar todo el historial? Esta acción no se puede deshacer.')) {
+                try {
+                    const response = await fetch('/api/chat-ia/', { method: 'DELETE' });
+                    if (response.ok) {
+                        loadChatHistory();
+                        newChat();
+                    } else {
+                        alert('Error al limpiar historial');
+                    }
+                } catch (error) {
+                    console.error('Error al limpiar historial:', error);
+                }
+            }
+        }
+        
+        // Funciones de interfaz
+        function updateChatTitle(title) {
+            chatTitle.textContent = title || 'Nueva Conversación';
+        }
+        
+        function updateHistoryActiveItem(activeId) {
+            const items = document.querySelectorAll('.history-item');
+            items.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.id === activeId) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
+        function newChat() {
+            messages = [
+                {role: 'assistant', content: '¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy? Puedes usar las plantillas predefinidas de la derecha para consultas comunes o hacer preguntas específicas sobre agricultura inteligente.'}
+            ];
+            currentChatId = null;
+            renderMessages();
+            updateChatTitle('Nueva Conversación');
+            updateHistoryActiveItem(null);
+        }
+        
+        function updateHistoryList(history) {
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">No hay historial de conversaciones.</div>';
+                return;
+            }
+            
+            history.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.className = 'history-item';
+                listItem.dataset.id = item.id;
+                listItem.innerHTML = `
+                    <div class="history-title">${item.title}</div>
+                    <div class="history-date">${new Date(item.timestamp).toLocaleString()}</div>
+                `;
+                
+                listItem.addEventListener('click', () => {
+                    loadChat(item.id);
+                });
+                
+                historyList.appendChild(listItem);
+            });
+        }
+        
+        // Cargar historial al inicio
+        loadChatHistory();
+        
+        // Renderizar mensajes iniciales
         renderMessages();
-        userInput.focus();
-        
-        // Mejorar accesibilidad
-        userInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                chatForm.dispatchEvent(new Event('submit'));
-            }
-        });
+
     });
 </script>
 {% endblock %}
