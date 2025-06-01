@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from config import templates
 from services.deepseek_service import DeepSeekService
@@ -7,6 +7,8 @@ from services.auth_service import get_current_active_user
 from database import User
 from sqlalchemy.orm import Session
 from database import get_db
+import os
+import traceback
 
 router = APIRouter(prefix="/ia", tags=["IA"])
 
@@ -24,8 +26,209 @@ async def ia_chat_page(
 
 @router.post("/chat")
 async def ia_chat_api(request: Request):
-    data = await request.json()
-    messages = data.get("messages", [])
-    deepseek = DeepSeekService()
-    respuesta = deepseek.chat(messages)
-    return respuesta
+    try:
+        # Obtener datos del request
+        data = await request.json()
+        messages = data.get("messages", [])
+        
+        print(f"🔍 Recibida petición con {len(messages)} mensajes")
+        
+        if not messages:
+            print("❌ No se proporcionaron mensajes")
+            return JSONResponse(
+                status_code=400,
+                content={"error": "No se proporcionaron mensajes"}
+            )
+        
+        # Verificar configuración de API
+        api_key = os.getenv("DEEPSEEK_API_KEY")
+        if not api_key:
+            print("❌ DEEPSEEK_API_KEY no configurada")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": "Servicio de IA no configurado",
+                    "choices": [{
+                        "message": {
+                            "content": """⚠️ **Servicio de IA no disponible**
+                            
+El servicio de inteligencia artificial no está configurado correctamente.
+
+**Mientras tanto, puedo ayudarte con:**
+
+🌱 **Consejos generales de agricultura:**
+• Mantén el pH del suelo entre 6.0-7.0
+• Riega en horas tempranas para reducir evaporación
+• Monitorea temperatura: 18-25°C es ideal para la mayoría de cultivos
+
+💧 **Riego inteligente:**
+• Usa sensores de humedad del suelo
+• Ajusta frecuencia según etapa del cultivo
+• 2-3 cm de agua por semana es promedio
+
+🌡️ **Interpretación de sensores:**
+• Temperatura >30°C: Riesgo de estrés térmico
+• Humedad <30%: Necesidad de riego
+• pH <6.0: Suelo ácido, agregar cal
+
+Por favor, contacta al administrador para configurar el servicio de IA."""
+                        }
+                    }]
+                }
+            )
+        
+        print(f"✅ API Key configurada: {api_key[:10]}...")
+        
+        # Inicializar servicio de IA
+        deepseek = DeepSeekService()
+        
+        print("🚀 Enviando mensajes a DeepSeek...")
+        
+        # Procesar con el servicio de IA
+        respuesta = deepseek.chat(messages)
+        
+        print(f"📦 Respuesta recibida: {type(respuesta)}")
+        
+        # Validar respuesta
+        if not respuesta:
+            print("❌ Respuesta vacía de DeepSeek")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": "Respuesta vacía del servicio de IA",
+                    "choices": [{
+                        "message": {
+                            "content": "Lo siento, no pude generar una respuesta en este momento. Por favor, intenta de nuevo."
+                        }
+                    }]
+                }
+            )
+        
+        # Verificar estructura de respuesta
+        if not isinstance(respuesta, dict) or 'choices' not in respuesta:
+            print(f"❌ Estructura de respuesta inválida: {respuesta}")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": "Formato de respuesta inválido",
+                    "choices": [{
+                        "message": {
+                            "content": "Recibí una respuesta en formato incorrecto del servicio de IA. Por favor, intenta de nuevo."
+                        }
+                    }]
+                }
+            )
+        
+        print("✅ Respuesta válida, enviando al cliente")
+        return JSONResponse(content=respuesta)
+        
+    except ValueError as ve:
+        error_msg = f"Error de configuración: {str(ve)}"
+        print(f"❌ {error_msg}")
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": error_msg,
+                "choices": [{
+                    "message": {
+                        "content": f"Error de configuración del servicio: {str(ve)}"
+                    }
+                }]
+            }
+        )
+    except Exception as e:
+        error_msg = f"Error interno del servidor: {str(e)}"
+        print(f"❌ {error_msg}")
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": error_msg,
+                "choices": [{
+                    "message": {
+                        "content": f"""🔧 **Error técnico detectado**
+
+Ha ocurrido un error interno en el sistema.
+
+**Sugerencias para resolverlo:**
+• Intenta recargar la página
+• Verifica tu conexión a internet
+• Si el problema persiste, contacta al administrador
+
+**Error técnico:** {str(e)[:100]}...
+
+**Mientras tanto, aquí tienes algunos consejos generales:**
+
+🌱 **Monitoreo de cultivos:**
+• Revisa sensores diariamente
+• Mantén registros de lecturas anómalas
+• Ajusta parámetros según temporada
+
+💧 **Gestión del agua:**
+• Programa riegos en horas frescas
+• Monitorea humedad del suelo constantemente
+• Ajusta frecuencia según clima"""
+                    }
+                }]
+            }
+        )
+
+@router.get("/test")
+async def test_ia_connection():
+    """Endpoint para probar la conexión con la IA"""
+    try:
+        # Verificar variable de entorno
+        api_key = os.getenv("DEEPSEEK_API_KEY")
+        if not api_key:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "status": "error",
+                    "message": "DEEPSEEK_API_KEY no configurada",
+                    "solution": "Configura la variable de entorno DEEPSEEK_API_KEY",
+                    "details": {
+                        "env_vars_found": list(os.environ.keys()),
+                        "expected_var": "DEEPSEEK_API_KEY"
+                    }
+                }
+            )
+        
+        print(f"🔍 Probando conexión con API Key: {api_key[:10]}...")
+        
+        # Probar conexión con mensaje simple
+        deepseek = DeepSeekService()
+        result = deepseek.test_connection()
+        
+        if result["status"] == "success":
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "status": "success",
+                    "message": "Conexión con IA funcionando correctamente",
+                    "response": result["response"],
+                    "api_key_preview": f"{api_key[:10]}...{api_key[-4:]}"
+                }
+            )
+        else:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "status": "error",
+                    "message": f"Error en la conexión: {result['message']}",
+                    "solution": "Verifica la configuración de DEEPSEEK_API_KEY"
+                }
+            )
+        
+    except Exception as e:
+        print(f"❌ Error en test de conexión: {str(e)}")
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": f"Error inesperado en test: {str(e)}",
+                "solution": "Verifica la configuración del sistema",
+                "traceback": traceback.format_exc()
+            }
+        )
