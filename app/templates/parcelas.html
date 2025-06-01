@@ -2,18 +2,13 @@
 {% block title %}Gestión de Parcelas{% endblock %}
 {% block content %}
 <div class="container mt-4">
-    <h2>Parcelas</h2>
-    <form method="post" action="/parcelas/crear" class="row g-3 mb-4">
-        <div class="col-md-4">
-            <input type="text" name="nombre" class="form-control" placeholder="Nombre de la parcela" required>
-        </div>
-        <div class="col-md-4">
-            <input type="text" name="ubicacion" class="form-control" placeholder="Ubicación" required>
-        </div>
-        <div class="col-md-4">
-            <button type="submit" class="btn btn-success">Crear Parcela</button>
-        </div>
-    </form>
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Parcelas</h2>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addParcelaModal">
+            <i class="fas fa-plus-circle me-1"></i>Añadir Parcela
+        </button>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
@@ -25,19 +20,91 @@
         <tbody>
             {% for p in parcelas %}
             <tr>
-                <form method="post" action="/parcelas/actualizar/{{ p.id }}">
-                    <td><input type="text" name="nombre" value="{{ p.nombre }}" class="form-control" required></td>
-                    <td><input type="text" name="ubicacion" value="{{ p.ubicacion }}" class="form-control" required></td>
-                    <td>
-                        <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
-                        <form method="post" action="/parcelas/borrar/{{ p.id }}" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Borrar parcela?')">Borrar</button>
-                        </form>
-                    </td>
-                </form>
+                <td>{{ p.nombre }}</td>
+                <td>{{ p.ubicacion }}</td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="openEditParcelaModal('{{ p.id }}', '{{ p.nombre }}', '{{ p.ubicacion }}')">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <form method="post" action="/parcelas/borrar/{{ p.id }}" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Borrar parcela?')">
+                            <i class="fas fa-trash"></i> Borrar
+                        </button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<!-- Modal para agregar una nueva parcela -->
+<div class="modal fade" id="addParcelaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Añadir Nueva Parcela</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addParcelaForm" action="/parcelas/crear" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de la Parcela</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Nombre de la parcela" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" name="ubicacion" class="form-control" placeholder="Ubicación" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Guardar Parcela</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar una parcela existente -->
+<div class="modal fade" id="editParcelaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Parcela</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editParcelaForm" action="" method="post">
+                    <input type="hidden" id="editParcelaId" name="parcela_id">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de la Parcela</label>
+                        <input type="text" id="editParcelaNombre" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" id="editParcelaUbicacion" name="ubicacion" class="form-control" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Actualizar Parcela</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    function openEditParcelaModal(id, nombre, ubicacion) {
+        document.getElementById('editParcelaId').value = id;
+        document.getElementById('editParcelaNombre').value = nombre;
+        document.getElementById('editParcelaUbicacion').value = ubicacion;
+        document.getElementById('editParcelaForm').action = `/parcelas/actualizar/${id}`;
+        const modal = new bootstrap.Modal(document.getElementById('editParcelaModal'));
+        modal.show();
+    }
+</script>
 {% endblock %}

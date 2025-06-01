@@ -55,10 +55,16 @@ def actualizar_parcela(parcela_id: int, nombre: str = Form(...), ubicacion: str 
 @router.get("/trabajadores", response_class=HTMLResponse)
 def trabajadores_por_parcela(
     request: Request,
-    parcela_id: Optional[int] = Query(None),
+    parcela_id: Optional[str] = Query(None),  # Cambiar a Optional[str] para aceptar cadenas vacías
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
+    # Convertir cadena vacía a None
+    if parcela_id == "":
+        parcela_id = None
+    else:
+        parcela_id = int(parcela_id) if parcela_id else None
+
     if current_user.role == "agricultor":
         # Solo muestra los trabajadores de la parcela del agricultor
         if not current_user.parcela_id:

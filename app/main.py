@@ -69,7 +69,7 @@ async def sensores_page(
     request: Request,
     db: Session = Depends(get_db),
     current_user: Optional[dict] = Depends(get_current_active_user),
-    parcela_id: Optional[str] = Query(None),
+    parcela_id: Optional[str] = Query(None),  # Cambiar a Optional[str] para aceptar cadenas vacías
     tipo: Optional[str] = None,
     estado: Optional[str] = None,
     ubicacion: Optional[str] = None
