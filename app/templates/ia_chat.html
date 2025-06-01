@@ -17,7 +17,7 @@
         display: flex;
         flex-direction: column;
     }
-    
+
     .container-chat {
         display: grid;
         grid-template-columns: 280px 1fr 300px;
@@ -173,7 +173,7 @@
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
         overflow: hidden;
     }
-    
+  
     .chat-header {
         padding: 18px 28px;
         background-color: var(--ecosmart-primary);
@@ -184,7 +184,7 @@
         align-items: center;
         font-size: 1.2rem;
     }
-    
+
     .chat-messages {
         flex-grow: 1;
         overflow-y: auto;
@@ -194,7 +194,7 @@
         flex-direction: column;
         gap: 18px;
     }
-    
+  
     .message {
         max-width: 75%;
         padding: 16px 20px 16px 20px;
@@ -208,7 +208,7 @@
         margin-right: 64px;
         min-height: 56px;
     }
-    
+
     .user-message {
         align-self: flex-end;
         background-color: var(--ecosmart-secondary);
@@ -217,7 +217,7 @@
         margin-left: 25%;
         margin-right: 0;
     }
-    
+
     .ai-message {
         align-self: flex-start;
         background-color: white;
@@ -240,13 +240,13 @@
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
         z-index: 2;
     }
-    
+  
     .user-avatar {
         right: -32px;
         background-color: var(--ecosmart-secondary);
         color: white;
     }
-    
+
     .ai-avatar {
         left: -32px;
         background-color: white;
@@ -383,7 +383,7 @@
         0%, 100% { transform: scale(1); opacity: 0.4; }
         50% { transform: scale(1.2); opacity: 1; }
     }
-    
+
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
@@ -527,6 +527,7 @@
         opacity: 0.6;
         pointer-events: none;
     }
+
 </style>
 {% endblock %}
 
@@ -538,7 +539,6 @@
                 <i class="fas fa-robot me-2" style="color: var(--ecosmart-primary);"></i>
                 Asistente IA - EcoSmart
             </h4>
-            
             <div class="container-chat">
                 <!-- Historial Sidebar (Izquierda) -->
                 <div class="history-sidebar">
@@ -593,17 +593,11 @@
                                 <div class="message-text">¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy? Puedes usar las plantillas predefinidas de la derecha para consultas comunes o hacer preguntas específicas sobre agricultura inteligente.</div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Indicador de escritura -->
-                    <div id="typing-indicator" class="typing-indicator">
-                        <div class="typing-dots">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
+                        <div class="message-content">
+                            <div class="message-sender">EcoSmart IA</div>
+                            <div class="message-text">¡Hola! Soy tu asistente virtual de EcoSmart. ¿En qué puedo ayudarte hoy?</div>
                         </div>
-                    </div>
-                    
+                    </div> 
                     <div class="input-area">
                         <form id="chat-form" autocomplete="off">
                             <div class="input-group input-box">
@@ -788,7 +782,6 @@
                 
                 chatBox.appendChild(messageDiv);
             });
-            
             scrollToBottom();
         }
         
@@ -1041,6 +1034,7 @@
         
         // Renderizar mensajes iniciales
         renderMessages();
+
     });
 </script>
 {% endblock %}

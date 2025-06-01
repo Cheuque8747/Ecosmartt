@@ -89,12 +89,16 @@
 
 {% block scripts %}
 <script>
-    document.getElementById('guardarClima').addEventListener('click', async function () {
-        const parcelaId = "{{ parcela_id }}";
-        const ciudad = "{{ ciudad }}";
+    document.addEventListener('DOMContentLoaded', function () {
+    const guardarClimaButton = document.getElementById('guardarClima');
 
+    const guardarClimaHandler = async function () {
+        guardarClimaButton.disabled = true;  // Deshabilitar el botón para evitar múltiples clics
+
+        const ciudad = "{{ ciudad }}";
         if (!ciudad) {
             alert("No se puede guardar el clima porque no se ha seleccionado una parcela.");
+            guardarClimaButton.disabled = false;  // Habilitar el botón nuevamente
             return;
         }
 
@@ -102,7 +106,6 @@
             const response = await fetch(`/clima/actual?ciudad=${ciudad}`, {
                 method: 'GET'
             });
-
             if (response.ok) {
                 alert("Clima guardado correctamente.");
                 location.reload(); // Recargar la página para reflejar los cambios
@@ -113,8 +116,13 @@
         } catch (err) {
             console.error("Error al guardar el clima:", err);
             alert("Ocurrió un error al guardar el clima.");
+        } finally {
+            guardarClimaButton.disabled = false;  // Habilitar el botón nuevamente
         }
-    });
+    };
+
+    guardarClimaButton?.addEventListener('click', guardarClimaHandler);
+});
 </script>
 {% endblock %}
 

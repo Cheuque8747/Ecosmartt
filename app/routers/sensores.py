@@ -304,7 +304,7 @@ async def export_sensor_readings(
 @router.post("/sensores/add")
 async def add_sensor_form(
     request: Request,
-    sensorId: str = Form(...),
+    #se quito el campo sensorId ya que no es necesario al crear un nuevo sensor
     sensorTipo: str = Form(...),
     sensorUbicacion: str = Form(...),
     sensorFrecuencia: int = Form(...),
@@ -327,10 +327,9 @@ async def add_sensor_form(
     if not parcela:
         raise HTTPException(status_code=404, detail="Parcela no encontrada")
 
-    # Verificar si el ID del sensor ya existe
-    sensor_existente = sensor_service.obtener_sensor_por_id(db, sensorId)
-    if sensor_existente:
-        raise HTTPException(status_code=400, detail="El ID del sensor ya existe")
+    # Generar un ID único para el sensor
+    total_sensores = db.query(Sensor).count()
+    sensorId = str(total_sensores + 1).zfill(3)
 
     # Crear el sensor
     nuevo_sensor = SensorCreate(
@@ -345,8 +344,8 @@ async def add_sensor_form(
     )
     sensor_service.crear_sensor(db, nuevo_sensor, sensorId, parcelaId)
 
-    # Redirigir a la página principal
-    return RedirectResponse("/", status_code=303)
+    # CORREGIDO: Redirigir a /sensores en lugar de /
+    return RedirectResponse("/sensores", status_code=303)
 
 @router.post("/sensores/edit")
 async def edit_sensor_form(
@@ -389,18 +388,5 @@ async def edit_sensor_form(
     # Actualizar el sensor
     sensor_service.actualizar_sensor(db, sensorId, sensor_data)
     
-    # Obtener todos los sensores para mostrar en la página
-    sensores = sensor_service.obtener_sensores(db)
-    
-    # Redirigimos a la página principal
-    return templates.TemplateResponse(
-        "index.html", 
-        {
-            "request": request, 
-            "sensores": sensores,
-            "sensor_info": sensor_info,
-            "now": datetime.now(),
-            "success_message": f"Sensor {sensorId} actualizado correctamente",
-            "user": current_user
-        }
-    )
+    # CORREGIDO: Redirigir a /sensores en lugar de renderizar template
+    return RedirectResponse("/sensores", status_code=303)

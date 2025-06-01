@@ -27,12 +27,12 @@
 
     {% if user and user.role != 'agricultor' %}
     <!-- Selector de parcelas para técnicos y agrónomos -->
-    <form method="get" action="/" class="row g-3 mb-4">
+    <form method="get" action="/sensores" class="row g-3 mb-4">
         <div class="col-md-6">
             <select name="parcela_id" class="form-select" onchange="this.form.submit()">
-                <option value="-1" {% if parcela_id == -1 %}selected{% endif %}>Seleccione una parcela</option>
+                <option value="">Seleccione una parcela</option>
                 {% for p in parcelas %}
-                <option value="{{ p.id }}" {% if parcela_id == p.id %}selected{% endif %}>
+                <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
                     {{ p.nombre }}
                 </option>
                 {% endfor %}
@@ -47,29 +47,33 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Filtros</h5>
-                    <form method="get" action="/" class="row g-3">
+                    <form method="get" action="/sensores" class="row g-3">
+                        <!-- Mantener parcela_id seleccionada en los filtros -->
+                        {% if parcela_id %}
+                        <input type="hidden" name="parcela_id" value="{{ parcela_id }}">
+                        {% endif %}
                         <div class="col-md-3">
                             <label class="form-label">Tipo de Sensor</label>
                             <select name="tipo" class="form-select">
                                 <option value="">Todos</option>
-                                <option value="temperatura">Temperatura</option>
-                                <option value="luz">Luz</option>
-                                <option value="ph">pH</option>
-                                <option value="conductividad">Conductividad</option>
-                                <option value="humedad">Humedad</option>
+                                <option value="temperatura" {% if request.query_params.get('tipo') == 'temperatura' %}selected{% endif %}>Temperatura</option>
+                                <option value="luz" {% if request.query_params.get('tipo') == 'luz' %}selected{% endif %}>Luz</option>
+                                <option value="ph" {% if request.query_params.get('tipo') == 'ph' %}selected{% endif %}>pH</option>
+                                <option value="conductividad" {% if request.query_params.get('tipo') == 'conductividad' %}selected{% endif %}>Conductividad</option>
+                                <option value="humedad" {% if request.query_params.get('tipo') == 'humedad' %}selected{% endif %}>Humedad</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Estado</label>
                             <select name="estado" class="form-select">
                                 <option value="">Todos</option>
-                                <option value="activo">Activo</option>
-                                <option value="noActivo">No Activo</option>
+                                <option value="activo" {% if request.query_params.get('estado') == 'activo' %}selected{% endif %}>Activo</option>
+                                <option value="noActivo" {% if request.query_params.get('estado') == 'noActivo' %}selected{% endif %}>No Activo</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Ubicación</label>
-                            <input type="text" name="ubicacion" class="form-control" placeholder="Buscar por ubicación">
+                            <input type="text" name="ubicacion" class="form-control" placeholder="Buscar por ubicación" value="{{ request.query_params.get('ubicacion', '') }}">
                         </div>
                         <div class="col-md-2 align-self-end">
                             <button type="submit" class="btn btn-primary w-100">Filtrar</button>
@@ -167,10 +171,6 @@
             <div class="modal-body">
                 <form action="/sensores/add" method="post">
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">ID del Sensor</label>
-                            <input type="text" name="sensorId" class="form-control" required>
-                        </div>
                         <div class="col-md-6">
                             <label class="form-label">Tipo de Sensor</label>
                             <select name="sensorTipo" class="form-select" required>
@@ -418,7 +418,7 @@
             method: 'PUT'
         })
         .then(response => response.json())
-        .then data => {
+        .then(data => {
             // Recargamos la página para reflejar el cambio
             location.reload();
         });

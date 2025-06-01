@@ -5,6 +5,7 @@
     <h2>Trabajadores por Parcela</h2>
 
     {% if role != "agricultor" %}
+    <!-- Filtro por Parcela -->
     <form method="get" action="/parcelas/trabajadores" class="row g-3 mb-4">
         <div class="col-md-6">
             <select name="parcela_id" class="form-select" onchange="this.form.submit()">
@@ -15,38 +16,62 @@
             </select>
         </div>
     </form>
-    {% endif %}
-
-    {% if role == "tecnico" and parcela_id %}
-    <!-- Formulario para agregar un nuevo trabajador -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5>Agregar Trabajador</h5>
-            <form method="post" action="/parcelas/trabajadores/crear" class="row g-2">
-                <input type="hidden" name="parcela_id" value="{{ parcela_id }}">
-                <div class="col-md-3">
-                    <input type="text" name="username" class="form-control" placeholder="Usuario" required>
-                </div>
-                <div class="col-md-3">
-                    <input type="email" name="email" class="form-control" placeholder="Email" required>
-                </div>
-                <div class="col-md-3">
-                    <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
-                </div>
-                <div class="col-md-2">
-                    <select name="role" class="form-select" required>
-                        <option value="agricultor">Agricultor</option>
-                        <option value="agronomo">Agrónomo</option>
-                        <option value="tecnico">Técnico</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <button type="submit" class="btn btn-success">Crear</button>
-                </div>
-            </form>
-        </div>
+    <!-- Botón para abrir modal de creación -->
+    <div class="mb-3">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
+            Agregar Trabajador
+        </button>
     </div>
     {% endif %}
+
+    <!-- Modal Crear Trabajador -->
+    <div class="modal fade" id="createWorkerModal" tabindex="-1" aria-labelledby="createWorkerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createWorkerModalLabel">Crear Nuevo Trabajador</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <form method="post" action="/parcelas/trabajadores/crear">
+              <div class="modal-body">
+                  <div class="mb-3">
+                      <label for="parcelSelect" class="form-label">Parcela</label>
+                      <select name="parcela_id" id="parcelSelect" class="form-select" required>
+                          <option value="">Seleccione una parcela</option>
+                          {% for p in parcelas %}
+                          <option value="{{ p.id }}">{{ p.nombre }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  <div class="mb-3">
+                      <label for="usernameInput" class="form-label">Usuario</label>
+                      <input type="text" name="username" id="usernameInput" class="form-control" placeholder="Usuario" required>
+                  </div>
+                  <div class="mb-3">
+                      <label for="emailInput" class="form-label">Email</label>
+                      <input type="email" name="email" id="emailInput" class="form-control" placeholder="Email" required>
+                  </div>
+                  <div class="mb-3">
+                      <label for="passwordInput" class="form-label">Contraseña</label>
+                      <input type="password" name="password" id="passwordInput" class="form-control" placeholder="Contraseña" required>
+                  </div>
+                  <div class="mb-3">
+                      <label for="roleSelect" class="form-label">Rol</label>
+                      <select name="role" id="roleSelect" class="form-select" required>
+                          <option value="agricultor">Agricultor</option>
+                          <option value="agronomo">Agrónomo</option>
+                          <option value="tecnico">Técnico</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Crear</button>
+              </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
     {% if trabajadores %}
     <table class="table table-striped">
@@ -61,41 +86,70 @@
             </tr>
         </thead>
         <tbody>
-            {% if role == "agricultor" or role == "agronomo" %}
-            <!-- Solo lista los trabajadores para agricultores -->
             {% for t in trabajadores %}
             <tr>
                 <td>{{ t.username }}</td>
                 <td>{{ t.email }}</td>
                 <td>{{ t.role }}</td>
+                {% if role == "tecnico" %}
+                <td>
+                    <!-- Botón editar -->
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editWorkerModal{{ t.id }}">
+                        Editar
+                    </button>
+                    <!-- Botón borrar -->
+                    <form method="post" action="/parcelas/trabajadores/borrar/{{ t.id }}" class="d-inline">
+                        <input type="hidden" name="parcela_id" value="{{ t.parcela_id }}">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Borrar trabajador?')">Borrar</button>
+                    </form>
+
+                    <!-- Modal Editar Trabajador -->
+                    <div class="modal fade" id="editWorkerModal{{ t.id }}" tabindex="-1" aria-labelledby="editWorkerModalLabel{{ t.id }}" aria-hidden="true">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="editWorkerModalLabel{{ t.id }}">Editar Trabajador</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                          </div>
+                          <form method="post" action="/parcelas/trabajadores/actualizar/{{ t.id }}">
+                              <div class="modal-body">
+                                  <div class="mb-3">
+                                      <label for="parcelEditSelect{{ t.id }}" class="form-label">Parcela</label>
+                                      <select name="parcela_id" id="parcelEditSelect{{ t.id }}" class="form-select" required>
+                                          {% for p in parcelas %}
+                                          <option value="{{ p.id }}" {% if p.id == t.parcela_id %}selected{% endif %}>{{ p.nombre }}</option>
+                                          {% endfor %}
+                                      </select>
+                                  </div>
+                                  <div class="mb-3">
+                                      <label for="usernameEdit{{ t.id }}" class="form-label">Usuario</label>
+                                      <input type="text" name="username" id="usernameEdit{{ t.id }}" value="{{ t.username }}" class="form-control" required>
+                                  </div>
+                                  <div class="mb-3">
+                                      <label for="emailEdit{{ t.id }}" class="form-label">Email</label>
+                                      <input type="email" name="email" id="emailEdit{{ t.id }}" value="{{ t.email }}" class="form-control" required>
+                                  </div>
+                                  <div class="mb-3">
+                                      <label for="roleEditSelect{{ t.id }}" class="form-label">Rol</label>
+                                      <select name="role" id="roleEditSelect{{ t.id }}" class="form-select" required>
+                                          <option value="agricultor" {% if t.role == 'agricultor' %}selected{% endif %}>Agricultor</option>
+                                          <option value="agronomo" {% if t.role == 'agronomo' %}selected{% endif %}>Agrónomo</option>
+                                          <option value="tecnico" {% if t.role == 'tecnico' %}selected{% endif %}>Técnico</option>
+                                      </select>
+                                  </div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                              </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                </td>
+                {% endif %}
             </tr>
             {% endfor %}
-            {% else %}
-            <!-- Lista con opciones de edición para técnicos -->
-            {% for t in trabajadores %}
-            <tr>
-                <form method="post" action="/parcelas/trabajadores/actualizar/{{ t.id }}">
-                    <input type="hidden" name="parcela_id" value="{{ parcela_id }}">
-                    <td><input type="text" name="username" value="{{ t.username }}" class="form-control"></td>
-                    <td><input type="email" name="email" value="{{ t.email }}" class="form-control"></td>
-                    <td>
-                        <select name="role" class="form-select">
-                            <option value="agricultor" {% if t.role == "agricultor" %}selected{% endif %}>Agricultor</option>
-                            <option value="agronomo" {% if t.role == "agronomo" %}selected{% endif %}>Agrónomo</option>
-                            <option value="tecnico" {% if t.role == "tecnico" %}selected{% endif %}>Técnico</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
-                        <form method="post" action="/parcelas/trabajadores/borrar/{{ t.id }}" style="display:inline;">
-                            <input type="hidden" name="parcela_id" value="{{ parcela_id }}">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Borrar trabajador?')">Borrar</button>
-                        </form>
-                    </td>
-                </form>
-            </tr>
-            {% endfor %}
-            {% endif %}
         </tbody>
     </table>
     {% elif parcela_id %}
