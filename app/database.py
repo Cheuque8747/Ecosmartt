@@ -1,5 +1,5 @@
-# database.py - Actualizado para SQLite
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey
+# database.py - Actualizado para SQLite con ChatIA
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 import os
@@ -30,6 +30,9 @@ class User(Base):
     # Relación con parcelas
     parcela_id = Column(Integer, ForeignKey("parcelas.id"), nullable=True)
     parcela = relationship("Parcela", back_populates="trabajadores")
+    
+    # Relación con chats IA
+    chats_ia = relationship("ChatIA", back_populates="user", cascade="all, delete-orphan")
 
 class Sensor(Base):
     __tablename__ = "sensores"
@@ -94,6 +97,20 @@ class Parcela(Base):
     # Relación con clima
     climas = relationship("Clima", back_populates="parcela")
 
+class ChatIA(Base):
+    __tablename__ = "chats_ia"
+    
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False)
+    messages = Column(Text, nullable=False)  # JSON serializado
+    timestamp = Column(DateTime, default=datetime.now)
+    last_modified = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    is_active = Column(Boolean, default=True)
+    
+    # Relación con usuario
+    user = relationship("User", back_populates="chats_ia")
+
 # Crear las tablas
 Base.metadata.create_all(bind=engine)
 
@@ -133,4 +150,3 @@ def init_db():
 
 # Llamar a la función de inicialización
 init_db()
-

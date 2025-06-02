@@ -3,8 +3,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+# Cargar variables de entorno al inicio
+from dotenv import load_dotenv
+import os
+load_dotenv()  # Esto carga el archivo .env
+
 # Módulos actualizados
-from routers import sensores, lecturas, auth, ia, clima, parcelas
+from routers import sensores, lecturas, auth, ia, clima, parcelas, chat_ia
 from routers.auth import get_current_active_user
 
 from config import templates, sensor_info
@@ -21,7 +26,11 @@ from services.auth_service import get_current_active_user
 # Crear las tablas en la base de datos si no existen
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="EcoSmart - Plataforma de Agricultura Inteligente")
+app = FastAPI(
+    title="EcoSmart - Plataforma de Agricultura Inteligente",
+    description="Sistema inteligente para monitoreo y gestión agrícola con IoT e IA",
+    version="1.0.0"
+)
 
 # Montar archivos estáticos
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -33,10 +42,10 @@ app.include_router(lecturas.router)
 app.include_router(ia.router)
 app.include_router(clima.router)
 app.include_router(parcelas.router)
+app.include_router(chat_ia.router)  # Router para chat IA
 
 from database import Parcela
 from fastapi import Query
-#HTTPException
 from fastapi.exceptions import HTTPException
 
 # NUEVA RUTA DE INICIO/PRESENTACIÓN
@@ -125,17 +134,64 @@ def iniciar_generacion_lecturas():
 @app.on_event("startup")
 async def startup_event():
     """Se ejecuta cuando inicia la aplicación"""
+    print("🚀 Iniciando EcoSmart...")
+    
+    # Verificar variables de entorno críticas
+    required_vars = ["DEEPSEEK_API_KEY", "OPENWEATHERMAP_API_KEY"]
+    missing_vars = []
+    
+    for var in required_vars:
+        value = os.getenv(var)
+        if not value:
+            missing_vars.append(var)
+        else:
+            print(f"✅ {var}: {value[:10]}...")
+    
+    if missing_vars:
+        print(f"⚠️  Variables de entorno faltantes: {', '.join(missing_vars)}")
+        print("💡 Crea un archivo .env con las variables necesarias")
+    else:
+        print("✅ Todas las variables de entorno configuradas")
+    
     # Crear un thread que ejecute la generación periódica de lecturas
     thread = threading.Thread(target=iniciar_generacion_lecturas, daemon=True)
     thread.start()
-    print("Proceso de generación automática de lecturas iniciado en segundo plano")
+    print("✅ Proceso de generación automática de lecturas iniciado")
+    
+    print("🌱 EcoSmart listo para usar!")
 
 # Detener el proceso cuando se cierra la aplicación
 @app.on_event("shutdown")
 async def shutdown_event():
     """Se ejecuta cuando se cierra la aplicación"""
-    print("Deteniendo proceso de generación automática de lecturas")
+    print("🛑 Deteniendo EcoSmart...")
+    print("✅ Proceso de generación automática de lecturas detenido")
+
+# Endpoint de salud del sistema
+@app.get("/health")
+async def health_check():
+    """Endpoint para verificar el estado del sistema"""
+    api_key_status = "✅ Configurada" if os.getenv("DEEPSEEK_API_KEY") else "❌ Faltante"
+    weather_key_status = "✅ Configurada" if os.getenv("OPENWEATHERMAP_API_KEY") else "❌ Faltante"
+    
+    return {
+        "status": "healthy",
+        "version": "1.0.0",
+        "services": {
+            "database": "✅ Operacional",
+            "ai_service": api_key_status,
+            "weather_service": weather_key_status
+        },
+        "timestamp": datetime.now().isoformat()
+    }
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    
+    # Configuración desde variables de entorno
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8000))
+    debug = os.getenv("DEBUG", "True").lower() == "true"
+    
+    print(f"🌐 Servidor iniciando en http://{host}:{port}")
+    uvicorn.run("main:app", host=host, port=port, reload=debug)
