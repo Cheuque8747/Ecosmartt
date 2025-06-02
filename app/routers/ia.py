@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from config import templates
 from services.deepseek_service import DeepSeekService
 from services.auth_service import get_current_active_user
-from database import User
+from database import User, Parcela
 from sqlalchemy.orm import Session
 from database import get_db
 import os
@@ -13,15 +13,25 @@ import traceback
 router = APIRouter(prefix="/ia", tags=["IA"])
 
 
+import json
 @router.get("/chat", response_class=HTMLResponse)
 async def ia_chat_page(
     request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
+    # Obtener las parcelas según el rol del usuario
+    if current_user.role == "agricultor":
+        parcelas = db.query(Parcela).filter(Parcela.id == current_user.parcela_id).all()
+    else:
+        parcelas = db.query(Parcela).all()
+
+    # Convertir parcelas a formato JSON
+    parcelas_json = [{"id": p.id, "nombre": p.nombre, "ubicacion": p.ubicacion} for p in parcelas]
+
     return templates.TemplateResponse(
         "ia_chat.html",
-        {"request": request, "user": current_user}
+        {"request": request, "user": current_user, "parcelas": parcelas, "parcelas_json": json.dumps(parcelas_json)}
     )
 
 @router.post("/chat")
@@ -232,3 +242,119 @@ async def test_ia_connection():
                 "traceback": traceback.format_exc()
             }
         )
+    
+
+from fastapi import HTTPException
+from database import Sensor
+from services.openweather_service import OpenWeatherService
+weather_service = OpenWeatherService()
+
+@router.get("/sensores/promedios")  # riego
+async def obtener_promedios_sensores(
+    parcela_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    sensores = db.query(Sensor).filter(Sensor.parcela_id == parcela_id).all()
+    if not sensores:
+        raise HTTPException(status_code=404, detail="No se encontraron sensores para la parcela seleccionada.")
+
+    promedios = {}
+    for tipo in ["humedad", "temperatura", "conductividad", "ph"]:
+        lecturas = [lectura.valor for sensor in sensores if sensor.tipo == tipo for lectura in sensor.lecturas]
+        if lecturas:
+            promedios[tipo] = round(sum(lecturas) / len(lecturas), 2)  # Limitar a 2 decimales
+        else:
+            promedios[tipo] = None  # No hay lecturas disponibles
+            print(f"No hay lecturas disponibles para el tipo {tipo} en la parcela {parcela_id}")
+
+    return promedios
+
+
+@router.get("/clima/actual-pronostico") #clima
+async def obtener_clima_actual(
+    parcela_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Obtiene el clima actual y el pronóstico para una parcela específica."""
+    parcela = db.query(Parcela).filter(Parcela.id == parcela_id).first()
+    if not parcela:
+        raise HTTPException(status_code=404, detail="Parcela no encontrada.")
+
+    ciudad = parcela.ubicacion
+    clima_actual = weather_service.get_current_weather(ciudad)
+    pronostico = weather_service.get_forecast(ciudad)
+
+    return {
+        "clima_actual": clima_actual,
+        "pronostico": pronostico
+    }
+
+@router.get("/sensores/ultimas_lecturas") #plagas
+async def obtener_ultimas_lecturas(
+    parcela_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Obtiene las últimas lecturas de humedad y temperatura para una parcela específica."""
+    sensores = db.query(Sensor).filter(Sensor.parcela_id == parcela_id).all()
+    if not sensores:
+        raise HTTPException(status_code=404, detail="No se encontraron sensores para la parcela seleccionada.")
+
+    ultimas_lecturas = {}
+    for tipo in ["humedad", "temperatura"]:
+        sensor = next((s for s in sensores if s.tipo == tipo), None)
+        if sensor and sensor.lecturas:
+            ultima_lectura = max(sensor.lecturas, key=lambda l: l.timestamp)
+            ultimas_lecturas[tipo] = {
+                "valor": round(ultima_lectura.valor, 2),
+                "timestamp": ultima_lectura.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            }
+        else:
+            ultimas_lecturas[tipo] = None
+
+    return ultimas_lecturas
+
+
+@router.get("/sensores/promedios_fertilizacion") # fertilizacion
+async def obtener_promedios_fertilizacion(
+    parcela_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Obtiene los valores promedio de conductividad y pH para una parcela específica."""
+    sensores = db.query(Sensor).filter(Sensor.parcela_id == parcela_id).all()
+    if not sensores:
+        raise HTTPException(status_code=404, detail="No se encontraron sensores para la parcela seleccionada.")
+
+    promedios = {}
+    for tipo in ["conductividad", "ph"]:
+        lecturas = [lectura.valor for sensor in sensores if sensor.tipo == tipo for lectura in sensor.lecturas]
+        if lecturas:
+            promedios[tipo] = round(sum(lecturas) / len(lecturas), 2)  # Limitar a 2 decimales
+        else:
+            promedios[tipo] = None
+
+    return promedios
+
+@router.get("/sensores/promedios_cosecha")
+async def obtener_promedios_cosecha(
+    parcela_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Obtiene los valores promedio de humedad y temperatura para una parcela específica."""
+    sensores = db.query(Sensor).filter(Sensor.parcela_id == parcela_id).all()
+    if not sensores:
+        raise HTTPException(status_code=404, detail="No se encontraron sensores para la parcela seleccionada.")
+
+    promedios = {}
+    for tipo in ["humedad", "temperatura"]:
+        lecturas = [lectura.valor for sensor in sensores if sensor.tipo == tipo for lectura in sensor.lecturas]
+        if lecturas:
+            promedios[tipo] = round(sum(lecturas) / len(lecturas), 2)  # Limitar a 2 decimales
+        else:
+            promedios[tipo] = None
+
+    return promedios

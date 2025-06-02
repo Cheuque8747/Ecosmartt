@@ -619,9 +619,27 @@
                 
                 <!-- Templates Sidebar (Derecha) -->
                 <div class="templates-sidebar">
+                    <!-- Selector de parcelas -->
                     <div class="templates-header">
                         <i class="fas fa-file-alt me-2"></i>
                         Consultas Comunes
+                        <div class="mt-3">
+                            <label for="parcela-select" class="form-label">Seleccionar Parcela:</label>
+                            <select id="parcela-select" class="form-select">
+                                <option value="">Seleccione una parcela</option>
+                                {% for parcela in parcelas %}
+                                    {% if user.role == 'agricultor'%}
+                                        {%if parcela.id == user.parcela.id%}
+                                        <option value="{{ parcela.id }}">{{ parcela.nombre }}</option>
+                                        {%endif %}
+                                    {%else %}
+                                        <option value="{{ parcela.id }}">{{ parcela.nombre }}</option>
+                                    {% endif %}
+                            
+                                {% endfor %}
+                            </select>
+                        </div>
+                
                     </div>
                     
                     <div class="templates-content">
@@ -644,12 +662,6 @@
                             <div class="template-description">Análisis del impacto del clima en cultivos y medidas preventivas.</div>
                         </div>
                         
-                        <div class="template-item" data-template="sensores">
-                            <div class="template-category">Análisis</div>
-                            <div class="template-title">Datos de Sensores</div>
-                            <div class="template-description">Interpretación de tendencias y patrones en datos de sensores.</div>
-                        </div>
-                        
                         <div class="section-divider"></div>
                         
                         <div class="template-item" data-template="plagas">
@@ -670,11 +682,6 @@
                             <div class="template-description">Determinación del mejor momento para cosechar.</div>
                         </div>
                         
-                        <div class="template-item" data-template="rendimiento">
-                            <div class="template-category">Análisis</div>
-                            <div class="template-title">Análisis de Rendimiento</div>
-                            <div class="template-description">Evaluación del rendimiento del cultivo y factores que lo afectan.</div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -698,6 +705,7 @@
         const clearHistoryBtn = document.getElementById('clear-history');
         const chatTitle = document.getElementById('chat-title');
         const historyList = document.getElementById('history-list');
+        const parcelaSelect = document.getElementById('parcela-select');
         
         // Variables de estado
         let messages = [
@@ -710,19 +718,24 @@
         const templates = {
             diagnostico: "Necesito ayuda para diagnosticar un problema en mi cultivo. He notado los siguientes síntomas: [describe los síntomas observados]. El problema comenzó hace [tiempo] y las condiciones climáticas recientes han sido [describe clima]. ¿Qué podría estar causando esto y qué tratamiento recomiendas?",
             
+            //para un agricultor, solo pasa datos de las parcela a la que pertenece, 
+            //para un agronomo o tecnico, arriba del scroll de las plantillas, debe seleccionar la parcela de la cual quiere obtener los datos
+
+            //pasar datos promedios de los 4 tipos de sensores (si es un tecnico o agronomo, primero debe seleccionar la parcela)
             riego: "Ayúdame a optimizar el riego para mi cultivo de [tipo de cultivo]. Los datos actuales de mis sensores muestran: humedad del suelo [%], temperatura [°C], y conductividad [dS/m]. El cultivo está en etapa de [crecimiento/floración/fructificación]. ¿Cuál es la frecuencia y cantidad de riego recomendada?",
             
+            //pasar datos de temperatura, humedad, viento y pronóstico de los próximos días (si es un tecnico o agronomo, primero debe seleccionar la parcela)
             clima: "Analiza el impacto del pronóstico climático en mi cultivo de [tipo de cultivo]. Las condiciones actuales son [temperatura, humedad, viento] y el pronóstico para los próximos días indica [condiciones esperadas]. ¿Qué medidas preventivas debería tomar?",
-            
-            sensores: "Analiza los datos de mi sensor de [tipo de sensor] de los últimos [período]. El valor promedio es [valor], con un mínimo de [min] y máximo de [max]. He notado una tendencia [ascendente/descendente/estable]. ¿Hay algún patrón preocupante y qué recomendaciones tienes?",
-            
+        
+            //pasar ultimas lecutaras de temperatura y humedad actuales de los sensores (si es un tecnico o agronomo, primero debe seleccionar la parcela)
             plagas: "Creo que mi cultivo de [tipo de cultivo] puede tener plagas. He observado [síntomas: manchas en hojas, agujeros, decoloración, etc.] en [parte de la planta]. Las condiciones ambientales son [temperatura, humedad]. ¿Qué plaga podría ser y cómo la trato?",
             
+            //pasar promedio de conductividad y ph de los sensores (si es un tecnico o agronomo, primero debe seleccionar la parcela)
             fertilizacion: "Necesito un plan de fertilización para mi cultivo de [tipo de cultivo] en [etapa de crecimiento]. El tipo de suelo es [arcilloso/arenoso/limoso] y el pH del suelo es [valor]. Los datos de conductividad muestran [valor]. ¿Qué fertilizantes y frecuencia recomiendas?",
             
+            //pasar temperatura y humedad promedio de los sensores (si es un tecnico o agronomo, primero debe seleccionar la parcela)
             cosecha: "¿Cuál es el momento óptimo para cosechar mi cultivo de [tipo de cultivo]? La planta fue sembrada hace [tiempo], las condiciones ambientales promedio han sido [temperatura, humedad], y actualmente observo [estado de la planta/frutos]. ¿Qué indicadores debo monitorear?",
             
-            rendimiento: "Evalúa el rendimiento de mi cultivo de [tipo de cultivo]. Los datos de sensores muestran: temperatura promedio [°C], humedad [%], pH del suelo [valor]. La producción esperada era [cantidad] pero estoy obteniendo [cantidad actual]. ¿Qué factores podrían estar afectando el rendimiento?"
         };
         
         // Habilitar botón de envío cuando hay texto
@@ -1011,36 +1024,154 @@
             updateHistoryActiveItem(null);
         }
         
-        function updateHistoryList(history) {
-            historyList.innerHTML = '';
-            
-            if (history.length === 0) {
-                historyList.innerHTML = '<div class="empty-state">No hay historial de conversaciones.</div>';
-                return;
+function updateHistoryList(history) {
+    historyList.innerHTML = '';
+
+    if (history.length === 0) {
+        historyList.innerHTML = '<div class="empty-state">No hay historial de conversaciones.</div>';
+        return;
+    }
+
+    history.forEach(item => {
+        const listItem = document.createElement('li');
+        listItem.className = 'history-item';
+        listItem.dataset.id = item.id;
+        listItem.innerHTML = `
+            <div class="history-title">${item.title}</div>
+            <div class="history-date">${new Date(item.timestamp).toLocaleString()}</div>
+            <button class="btn-icon delete-chat-btn" title="Eliminar chat">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+
+        // Cargar el chat al hacer clic en el título
+        listItem.querySelector('.history-title').addEventListener('click', () => {
+            loadChat(item.id);
+        });
+
+        // Eliminar el chat al hacer clic en el botón
+        listItem.querySelector('.delete-chat-btn').addEventListener('click', async () => {
+            if (confirm('¿Estás seguro de que deseas eliminar este chat?')) {
+                await deleteChat(item.id);
             }
-            
-            history.forEach(item => {
-                const listItem = document.createElement('li');
-                listItem.className = 'history-item';
-                listItem.dataset.id = item.id;
-                listItem.innerHTML = `
-                    <div class="history-title">${item.title}</div>
-                    <div class="history-date">${new Date(item.timestamp).toLocaleString()}</div>
-                `;
-                
-                listItem.addEventListener('click', () => {
-                    loadChat(item.id);
-                });
-                
-                historyList.appendChild(listItem);
-            });
-        }
+        });
+
+        historyList.appendChild(listItem);
+    });
+}
         
+async function deleteChat(chatId) {
+    try {
+        const response = await fetch(`/api/chat-ia/${chatId}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Chat eliminado correctamente');
+            loadChatHistory(); // Recargar el historial después de eliminar
+        } else {
+            alert('Error al eliminar el chat');
+        }
+    } catch (error) {
+        console.error('Error al eliminar el chat:', error);
+        alert('Error al eliminar el chat');
+    }
+}
         // Cargar historial al inicio
         loadChatHistory();
         
         // Renderizar mensajes iniciales
         renderMessages();
+        
+        // Script para selector de parcelas
+        parcelaSelect.addEventListener('change', async function() {
+            const parcelaId = this.value;
+            if (!parcelaId) return;
+
+            //para riego
+            try {
+                const response = await fetch(`/ia/sensores/promedios?parcela_id=${parcelaId}`);
+                if (!response.ok) throw new Error('Error al obtener promedios de sensores.');
+
+                const promedios = await response.json();
+                templates.riego = `Ayúdame a optimizar el riego para mi cultivo de [CULTIVO]. Los datos actuales de mis sensores muestran: Humedad del suelo: ${promedios.humedad}% / Temperatura: ${promedios.temperatura}°C / Conductividad: ${promedios.conductividad} dS/m / pH: ${promedios.ph} . ¿Cuál es la frecuencia y cantidad de riego recomendada?`;
+            } catch (error) {
+                console.error(error);
+                alert('Error al obtener datos de sensores.');
+            }
+            //para fertilización
+            try {
+                const response = await fetch(`/ia/sensores/promedios_fertilizacion?parcela_id=${parcelaId}`);
+                if (!response.ok) throw new Error('Error al obtener promedios de fertilización.');
+
+                const promedios = await response.json();
+                const conductividad = promedios.conductividad ? `${promedios.conductividad} dS/m` : "No disponible";
+                const ph = promedios.ph ? `${promedios.ph}` : "No disponible";
+
+                templates.fertilizacion = `Necesito un plan de fertilización para mi cultivo de [tipo de cultivo] en [etapa de crecimiento]. El tipo de suelo es [arcilloso/arenoso/limoso] y el pH del suelo es ${ph}. Los datos de conductividad muestran ${conductividad}. ¿Qué fertilizantes y frecuencia recomiendas?`;
+            } catch (error) {
+                console.error(error);
+                alert('Error al obtener datos de fertilización.');
+            }
+            //para plagas
+            try {
+                const response = await fetch(`/ia/sensores/ultimas_lecturas?parcela_id=${parcelaId}`);
+                if (!response.ok) throw new Error('Error al obtener últimas lecturas de sensores.');
+
+                const ultimasLecturas = await response.json();
+                const humedad = ultimasLecturas.humedad ? `${ultimasLecturas.humedad.valor}%` : "No disponible";
+                const temperatura = ultimasLecturas.temperatura ? `${ultimasLecturas.temperatura.valor}°C` : "No disponible";
+
+                templates.plagas = `Creo que mi cultivo de [tipo de cultivo] puede tener plagas. He observado [síntomas: manchas en hojas, agujeros, decoloración, etc.] en [parte de la planta]. Las condiciones ambientales son:
+                - Humedad: ${humedad}
+                - Temperatura: ${temperatura}
+                ¿Qué plaga podría ser y cómo la trato?`;
+            } catch (error) {
+                console.error(error);
+                alert('Error al obtener datos de sensores.');
+            }
+
+            // Para cosecha
+            try {
+                const response = await fetch(`/ia/sensores/promedios_cosecha?parcela_id=${parcelaId}`);
+                if (!response.ok) throw new Error('Error al obtener promedios de cosecha.');
+
+                const promedios = await response.json();
+                const humedad = promedios.humedad ? `${promedios.humedad}%` : "No disponible";
+                const temperatura = promedios.temperatura ? `${promedios.temperatura}°C` : "No disponible";
+
+                templates.cosecha = `¿Cuál es el momento óptimo para cosechar mi cultivo de [tipo de cultivo]? La planta fue sembrada hace [tiempo], las condiciones ambientales promedio han sido:
+                - Humedad: ${humedad}
+                - Temperatura: ${temperatura}
+                Actualmente observo [estado de la planta/frutos]. ¿Qué indicadores debo monitorear?`;
+            } catch (error) {
+                console.error(error);
+                alert('Error al obtener datos de sensores.');
+            }
+
+            //para clima
+            try {
+                const response = await fetch(`/ia/clima/actual-pronostico?parcela_id=${parcelaId}`);
+                if (!response.ok) throw new Error('Error al obtener datos climáticos.');
+
+                const data = await response.json();
+                const climaActual = data.clima_actual;
+                const pronostico = data.pronostico;
+
+                templates.clima = `Analiza el impacto del pronóstico climático en mi cultivo de [tipo de cultivo]. Las condiciones actuales son: 
+                - Temperatura: ${climaActual.main.temp} °C
+                - Humedad: ${climaActual.main.humidity} %
+                - Viento: ${climaActual.wind.speed} m/s
+                El pronóstico para los próximos días indica: ${pronostico.list.map(d => `${d.dt_txt.split(' ')[0]}: ${d.weather[0].description}`).join(', ')}.
+                ¿Qué medidas preventivas debería tomar?`;
+            } catch (error) {
+                console.error(error);
+                alert('Error al obtener datos climáticos.');
+            }  
+        });
+
+
+
+
+
+
     });
 </script>
 {% endblock %}
