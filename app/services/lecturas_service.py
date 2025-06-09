@@ -85,6 +85,7 @@ def generar_lectura(db: Session, sensor: Sensor, ignore_time_check: bool = False
     # Redondeamos a 2 decimales
     return round(lectura, 2)
 
+from .alertas_service import AlertaService
 def generar_lecturas_periodicamente(db: Session, sensor_info: Dict[str, Dict[str, str]]):
     """Función que genera lecturas periódicamente para todos los sensores activos"""
     print("Iniciando generación automática de lecturas con SQLite...")
@@ -109,7 +110,11 @@ def generar_lecturas_periodicamente(db: Session, sensor_info: Dict[str, Dict[str
                         
                         # Guardamos la lectura en la base de datos
                         unidad = sensor_info[sensor.tipo]["unit"]
-                        guardar_lectura(db, sensor.id, lectura, timestamp, unidad, sensor.tipo)
+                        nueva_lectura = guardar_lectura(db, sensor.id, lectura, timestamp, unidad, sensor.tipo)
+
+
+                        # Comprobar si la lectura excede los umbrales
+                        AlertaService.comprobar_lecturas(db, sensor, nueva_lectura)
                         
                         print(f"Lectura generada para sensor {sensor.id}: {lectura} {unidad}")
         
