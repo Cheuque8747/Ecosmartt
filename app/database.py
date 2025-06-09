@@ -34,6 +34,9 @@ class User(Base):
     # Relación con chats IA
     chats_ia = relationship("ChatIA", back_populates="user", cascade="all, delete-orphan")
 
+    # Relación con alertas vistas
+    alertas_vistas = relationship("AlertaView", back_populates="user", cascade="all, delete-orphan")
+
 class Sensor(Base):
     __tablename__ = "sensores"
     
@@ -51,6 +54,9 @@ class Sensor(Base):
     # Relación con las lecturas
     lecturas = relationship("Lectura", back_populates="sensor")
 
+    # Relación con las alertas
+    alertas = relationship("Alerta", back_populates="sensor", cascade="all, delete-orphan")
+
     # Relación con la parcela
     parcela_id = Column(Integer, ForeignKey("parcelas.id"), nullable=True)
     parcela = relationship("Parcela", back_populates="sensores")
@@ -67,6 +73,9 @@ class Lectura(Base):
     
     # Relación con el sensor
     sensor = relationship("Sensor", back_populates="lecturas")
+
+    # Relación con las alertas
+    alertas = relationship("Alerta", back_populates="lectura", cascade="all, delete-orphan")
 
 class Clima(Base):
     __tablename__ = "clima"
@@ -89,13 +98,28 @@ class Parcela(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, nullable=False)
     ubicacion = Column(String, nullable=False)
-    
+
+    # Umbrales como atributos
+    temperatura_min = Column(Float, default=0.0)
+    temperatura_max = Column(Float, default=0.0)
+    humedad_min = Column(Float, default=0.0)
+    humedad_max = Column(Float, default=0.0)
+    ph_min = Column(Float, default=0.0)
+    ph_max = Column(Float, default=0.0)
+
+    # Atributos active para cada tipo de alerta
+    temperatura_active = Column(Boolean, default=False)
+    humedad_active = Column(Boolean, default=False)
+    ph_active = Column(Boolean, default=False)
+
     # Relación con sensores
     sensores = relationship("Sensor", back_populates="parcela")
     # Relación con trabajadores
     trabajadores = relationship("User", back_populates="parcela")
     # Relación con clima
     climas = relationship("Clima", back_populates="parcela")
+    # Relación con alertas
+    alertas = relationship("Alerta", back_populates="parcela", cascade="all, delete-orphan")
 
 class ChatIA(Base):
     __tablename__ = "chats_ia"
@@ -111,9 +135,41 @@ class ChatIA(Base):
     # Relación con usuario
     user = relationship("User", back_populates="chats_ia")
 
+class Alerta(Base):
+    __tablename__ = "alertas"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    id_sensor = Column(String, ForeignKey("sensores.id"), nullable=False)
+    id_lectura = Column(Integer, ForeignKey("lecturas.id"), nullable=False)
+    id_parcela = Column(Integer, ForeignKey("parcelas.id"), nullable=False)
+    tipo = Column(String, nullable=False)  # temperatura, humedad, ph, lux
+    is_active = Column(Boolean, default=True)
+    timestamp = Column(DateTime, default=datetime.now)
+
+    # Relaciones
+    sensor = relationship("Sensor", back_populates="alertas")
+    lectura = relationship("Lectura")
+    parcela = relationship("Parcela", back_populates="alertas")
+
+    # Relación con usuarios que han visto la alerta
+    vistas = relationship("AlertaView", back_populates="alerta", cascade="all, delete-orphan")
+
+
+class AlertaView(Base):
+    __tablename__ = "alertas_view"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    id_alerta = Column(Integer, ForeignKey("alertas.id"), nullable=False)
+    id_user = Column(Integer, ForeignKey("users.id"), nullable=False)
+    is_vista = Column(Boolean, default=False)
+    timestamp = Column(DateTime, default=datetime.now)
+
+    # Relaciones
+    alerta = relationship("Alerta")
+    user = relationship("User")
+
 # Crear las tablas
 Base.metadata.create_all(bind=engine)
-
 
 # Función para obtener la sesión de base de datos
 def get_db():
