@@ -289,4 +289,31 @@
     
     console.log("Página de lecturas cargada. Usa el botón 'Actualizar Lectura' para mostrar las lecturas más recientes.");
 </script>
+<script>
+        async function obtenerCantidadAlertasNoVistas() {
+            try {
+                const response = await fetch('/alertas/cantidad-no-vistas');
+                if (response.ok) {
+                    const data = await response.json();
+                    const alertCountElement = document.getElementById('alertCount');
+                    if (data.cantidad > 0) {
+                        alertCountElement.textContent = data.cantidad;
+                        alertCountElement.classList.remove('d-none');
+                    } else {
+                        alertCountElement.classList.add('d-none');
+                    }
+                } else {
+                    console.error('Error al obtener la cantidad de alertas no vistas');
+                }
+            } catch (error) {
+                console.error('Error al obtener la cantidad de alertas no vistas:', error);
+            }
+        }
+
+        // Llamar a la función al cargar la página
+        document.addEventListener('DOMContentLoaded', obtenerCantidadAlertasNoVistas);
+
+        // Llamar a la función en cada cambio de vista (si usas navegación dinámica)
+        document.addEventListener('viewChange', obtenerCantidadAlertasNoVistas);
+    </script>
 {% endblock %}
