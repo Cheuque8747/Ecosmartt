@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Alertas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Historial de Alertas</h2>
+    <div id="mensaje" class="alert alert-success d-none"></div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Parcela</th>
+                <th>Sensor ID</th>
+                <th>Lectura</th>
+                <th>Hora</th>
+                <th>Urgencia</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alerta in alertas %}
+            <tr id="alerta-{{ alerta.id }}">
+                <td>{{ alerta.tipo|title }}</td>
+                <td>{{ alerta.parcela_nombre }}</td>
+                <td>{{ alerta.sensor_id }}</td>
+                <td>{{ alerta.lectura_valor }} {{ alerta.lectura_unidad }}</td>
+                <td>{{ alerta.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                <td>
+                    <span class="badge {{ 'bg-danger' if alerta.urgencia == 'Alta' else 'bg-success' }}">
+                        {{ alerta.urgencia }}
+                    </span>
+                </td>
+                <td>
+                    {% if not alerta.is_vista %}
+                    <button type="button" class="btn btn-sm btn-primary" onclick="marcarComoVista('{{ alerta.id|escape }}')">
+                        Marcar como vista
+                    </button>
+                    {% else %}
+                    <span class="text-muted">Vista</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    async function marcarComoVista(alertaId) {
+        try {
+            const response = await fetch(`/alertas/marcar-vista/${alertaId}`, {
+                method: "POST",
+            });
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById("mensaje").textContent = data.message;
+                document.getElementById("mensaje").classList.remove("d-none");
+                // Actualizar la fila de la alerta
+                const fila = document.getElementById(`alerta-${alertaId}`);
+                if (fila) {
+                    fila.querySelector("td:last-child").innerHTML = '<span class="text-muted">Vista</span>';
+                }
+            } else {
+                console.error("Error al marcar la alerta como vista");
+            }
+        } catch (error) {
+            console.error("Error al marcar la alerta como vista:", error);
+        }
+    }
+</script>
+{% endblock %}
