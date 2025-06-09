@@ -15,7 +15,7 @@ from services.auth_service import get_password_hash
 router = APIRouter(prefix="/parcelas", tags=["Parcelas"])
 
 # Vista de listado y creación
-@router.get("/", response_class=HTMLResponse)
+@router.get("/vista", response_class=HTMLResponse)
 def listar_parcelas(request: Request, db: Session = Depends(get_db), current_user: dict = Depends(get_current_active_user)):
     if current_user.role != "tecnico":
         raise HTTPException(status_code=403, detail="No autorizado")
@@ -23,13 +23,39 @@ def listar_parcelas(request: Request, db: Session = Depends(get_db), current_use
     return templates.TemplateResponse("parcelas.html", {"request": request, "parcelas": parcelas, "user": current_user})
 
 @router.post("/crear", response_class=RedirectResponse)
-def crear_parcela(nombre: str = Form(...), ubicacion: str = Form(...), db: Session = Depends(get_db), current_user: dict = Depends(get_current_active_user)):
+def crear_parcela(
+    nombre: str = Form(...),
+    ubicacion: str = Form(...),
+    temperatura_min: float = Form(0.0),
+    temperatura_max: float = Form(0.0),
+    humedad_min: float = Form(0.0),
+    humedad_max: float = Form(0.0),
+    ph_min: float = Form(0.0),
+    ph_max: float = Form(0.0),
+    temperatura_active: bool = Form(False),
+    humedad_active: bool = Form(False),
+    ph_active: bool = Form(False),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user)
+):
     if current_user.role != "tecnico":
         raise HTTPException(status_code=403, detail="No autorizado")
-    parcela = Parcela(nombre=nombre, ubicacion=ubicacion)
+    parcela = Parcela(
+        nombre=nombre,
+        ubicacion=ubicacion,
+        temperatura_min=temperatura_min,
+        temperatura_max=temperatura_max,
+        humedad_min=humedad_min,
+        humedad_max=humedad_max,
+        ph_min=ph_min,
+        ph_max=ph_max,
+        temperatura_active=temperatura_active,
+        humedad_active=humedad_active,
+        ph_active=ph_active
+    )
     db.add(parcela)
     db.commit()
-    return RedirectResponse("/parcelas/", status_code=303)
+    return RedirectResponse("/parcelas/vista", status_code=303)
 
 @router.post("/borrar/{parcela_id}", response_class=RedirectResponse)
 def borrar_parcela(parcela_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_active_user)):
@@ -39,23 +65,52 @@ def borrar_parcela(parcela_id: int, db: Session = Depends(get_db), current_user:
     if parcela:
         db.delete(parcela)
         db.commit()
-    return RedirectResponse("/parcelas/", status_code=303)
+    return RedirectResponse("/parcelas/vista", status_code=303)
 
 @router.post("/actualizar/{parcela_id}", response_class=RedirectResponse)
-def actualizar_parcela(parcela_id: int, nombre: str = Form(...), ubicacion: str = Form(...), db: Session = Depends(get_db), current_user: dict = Depends(get_current_active_user)):
+def actualizar_parcela(
+    parcela_id: int,
+    nombre: str = Form(...),
+    ubicacion: str = Form(...),
+    temperatura_min: float = Form(...),
+    temperatura_max: float = Form(...),
+    humedad_min: float = Form(...),
+    humedad_max: float = Form(...),
+    ph_min: float = Form(...),
+    ph_max: float = Form(...),
+    temperatura_active: bool = Form(False),
+    humedad_active: bool = Form(False),
+    ph_active: bool = Form(False),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user)
+):
     if current_user.role != "tecnico":
         raise HTTPException(status_code=403, detail="No autorizado")
+    
     parcela = db.query(Parcela).get(parcela_id)
-    if parcela:
-        parcela.nombre = nombre
-        parcela.ubicacion = ubicacion
-        db.commit()
-    return RedirectResponse("/parcelas/", status_code=303)
+    if not parcela:
+        raise HTTPException(status_code=404, detail="Parcela no encontrada")
+    
+    # Actualizar los valores de la parcela
+    parcela.nombre = nombre
+    parcela.ubicacion = ubicacion
+    parcela.temperatura_min = temperatura_min
+    parcela.temperatura_max = temperatura_max
+    parcela.humedad_min = humedad_min
+    parcela.humedad_max = humedad_max
+    parcela.ph_min = ph_min
+    parcela.ph_max = ph_max
+    parcela.temperatura_active = temperatura_active
+    parcela.humedad_active = humedad_active
+    parcela.ph_active = ph_active
+
+    db.commit()
+    return RedirectResponse("/parcelas/vista", status_code=303)
 
 @router.get("/trabajadores", response_class=HTMLResponse)
 def trabajadores_por_parcela(
     request: Request,
-    parcela_id: Optional[str] = Query(None),  # Cambiar a Optional[str] para aceptar cadenas vacías
+    parcela_id: Optional[str] = Query(None, description="ID de la parcela"),  # Cambiar a Optional[str] para aceptar cadenas vacías
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
