@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de Umbrales{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Configuración de Umbrales</h2>
+
+    <!-- Selector de parcelas -->
+    <form method="get" action="/umbrales/vista" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <label for="parcela-select" class="form-label">Seleccionar Parcela:</label>
+            <select name="parcela_id" id="parcela-select" class="form-select" onchange="this.form.submit()">
+                <option value="">Seleccione una parcela</option>
+                {% for parcela in parcelas %}
+                <option value="{{ parcela.id }}" {% if parcela_id and parcela.id == parcela_id %}selected{% endif %}>
+                    {{ parcela.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+
+    <!-- Formulario de configuración de umbrales -->
+    {% if parcela %}
+    <form method="post" action="/umbrales/actualizar">
+        <input type="hidden" name="parcela_id" value="{{ parcela.id }}">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Temperatura Mínima</label>
+                <input type="number" name="temperatura_min" class="form-control" step="0.1" value="{{ parcela.temperatura_min }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Temperatura Máxima</label>
+                <input type="number" name="temperatura_max" class="form-control" step="0.1" value="{{ parcela.temperatura_max }}" required>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Activar Alerta de Temperatura</label>
+                <input type="hidden" name="temperatura_active" value="false">
+                <input type="checkbox" name="temperatura_active" class="form-check-input" value="true" {% if parcela.temperatura_active %}checked{% endif %}>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Humedad Mínima</label>
+                <input type="number" name="humedad_min" class="form-control" step="0.1" value="{{ parcela.humedad_min }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Humedad Máxima</label>
+                <input type="number" name="humedad_max" class="form-control" step="0.1" value="{{ parcela.humedad_max }}" required>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Activar Alerta de Humedad</label>
+                <input type="hidden" name="humedad_active" value="false">
+                <input type="checkbox" name="humedad_active" class="form-check-input" value="true" {% if parcela.humedad_active %}checked{% endif %}>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">pH Mínimo</label>
+                <input type="number" name="ph_min" class="form-control" step="0.1" value="{{ parcela.ph_min }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">pH Máximo</label>
+                <input type="number" name="ph_max" class="form-control" step="0.1" value="{{ parcela.ph_max }}" required>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Activar Alerta de pH</label>
+                <input type="hidden" name="ph_active" value="false">
+                <input type="checkbox" name="ph_active" class="form-check-input" value="true" {% if parcela.ph_active %}checked{% endif %}>
+            </div>
+        </div>
+
+
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-info">Seleccione una parcela para configurar los umbrales.</div>
+    {% endif %}
+</div>
+{% endblock %}
