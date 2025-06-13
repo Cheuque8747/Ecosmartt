@@ -23,7 +23,21 @@
                 <td>{{ p.nombre }}</td>
                 <td>{{ p.ubicacion }}</td>
                 <td>
-                    <button class="btn btn-primary btn-sm" onclick="openEditParcelaModal('{{ p.id }}', '{{ p.nombre }}', '{{ p.ubicacion }}')">
+                    <button 
+                        class="btn btn-primary btn-sm" 
+                        onclick="openEditParcelaModal(this)"
+                        data-id="{{ p.id }}" 
+                        data-nombre="{{ p.nombre }}" 
+                        data-ubicacion="{{ p.ubicacion }}" 
+                        data-temperatura-min="{{ p.temperatura_min }}" 
+                        data-temperatura-max="{{ p.temperatura_max }}" 
+                        data-humedad-min="{{ p.humedad_min }}" 
+                        data-humedad-max="{{ p.humedad_max }}" 
+                        data-ph-min="{{ p.ph_min }}" 
+                        data-ph-max="{{ p.ph_max }}" 
+                        data-temperatura-active="{{ p.temperatura_active|lower }}" 
+                        data-humedad-active="{{ p.humedad_active|lower }}" 
+                        data-ph-active="{{ p.ph_active|lower }}">
                         <i class="fas fa-edit"></i> Editar
                     </button>
                     <form method="post" action="/parcelas/borrar/{{ p.id }}" style="display:inline;">
@@ -56,6 +70,50 @@
                         <label class="form-label">Ubicación</label>
                         <input type="text" name="ubicacion" class="form-control" placeholder="Ubicación" required>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Temperatura Mínima</label>
+                            <input type="number" name="temperatura_min" class="form-control" step="0.1" value="0.0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Temperatura Máxima</label>
+                            <input type="number" name="temperatura_max" class="form-control" step="0.1" value="0.0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Humedad Mínima</label>
+                            <input type="number" name="humedad_min" class="form-control" step="0.1" value="0.0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Humedad Máxima</label>
+                            <input type="number" name="humedad_max" class="form-control" step="0.1" value="0.0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">pH Mínimo</label>
+                            <input type="number" name="ph_min" class="form-control" step="0.1" value="0.0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">pH Máximo</label>
+                            <input type="number" name="ph_max" class="form-control" step="0.1" value="0.0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Activar Alerta de Temperatura</label>
+                            <input type="checkbox" name="temperatura_active" class="form-check-input">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Activar Alerta de Humedad</label>
+                            <input type="checkbox" name="humedad_active" class="form-check-input">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Activar Alerta de pH</label>
+                            <input type="checkbox" name="ph_active" class="form-check-input">
+                        </div>
+                    </div>
                     <div class="text-end">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-success">Guardar Parcela</button>
@@ -85,9 +143,53 @@
                         <label class="form-label">Ubicación</label>
                         <input type="text" id="editParcelaUbicacion" name="ubicacion" class="form-control" required>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Temperatura Mínima</label>
+                            <input type="number" id="editTemperaturaMin" name="temperatura_min" class="form-control" step="0.1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Temperatura Máxima</label>
+                            <input type="number" id="editTemperaturaMax" name="temperatura_max" class="form-control" step="0.1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Humedad Mínima</label>
+                            <input type="number" id="editHumedadMin" name="humedad_min" class="form-control" step="0.1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Humedad Máxima</label>
+                            <input type="number" id="editHumedadMax" name="humedad_max" class="form-control" step="0.1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">pH Mínimo</label>
+                            <input type="number" id="editphMin" name="ph_min" class="form-control" step="0.1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">pH Máximo</label>
+                            <input type="number" id="editphMax" name="ph_max" class="form-control" step="0.1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Activar Alerta de Temperatura</label>
+                            <input type="checkbox" id="editTemperaturaActive" name="temperatura_active" class="form-check-input">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Activar Alerta de Humedad</label>
+                            <input type="checkbox" id="editHumedadActive" name="humedad_active" class="form-check-input">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Activar Alerta de pH</label>
+                            <input type="checkbox" id="editPhActive" name="ph_active" class="form-check-input">
+                        </div>
+                    </div>
                     <div class="text-end">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Actualizar Parcela</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -98,13 +200,72 @@
 {% endblock %}
 {% block scripts %}
 <script>
-    function openEditParcelaModal(id, nombre, ubicacion) {
+    function openEditParcelaModal(button) {
+        // Obtener los datos de los atributos del botón
+        const id = button.getAttribute('data-id');
+        const nombre = button.getAttribute('data-nombre');
+        const ubicacion = button.getAttribute('data-ubicacion');
+        const temperaturaMin = button.getAttribute('data-temperatura-min');
+        const temperaturaMax = button.getAttribute('data-temperatura-max');
+        const humedadMin = button.getAttribute('data-humedad-min');
+        const humedadMax = button.getAttribute('data-humedad-max');
+        const phMin = button.getAttribute('data-ph-min');
+        const phMax = button.getAttribute('data-ph-max');
+        const temperaturaActive = button.getAttribute('data-temperatura-active') === 'true';
+        const humedadActive = button.getAttribute('data-humedad-active') === 'true';
+        const phActive = button.getAttribute('data-ph-active') === 'true';
+
+        // Rellenar los campos del formulario
         document.getElementById('editParcelaId').value = id;
         document.getElementById('editParcelaNombre').value = nombre;
         document.getElementById('editParcelaUbicacion').value = ubicacion;
+        document.getElementById('editTemperaturaMin').value = temperaturaMin;
+        document.getElementById('editTemperaturaMax').value = temperaturaMax;
+        document.getElementById('editHumedadMin').value = humedadMin;
+        document.getElementById('editHumedadMax').value = humedadMax;
+        document.getElementById('editphMin').value = phMin;
+        document.getElementById('editphMax').value = phMax;
+        document.getElementById('editTemperaturaActive').checked = temperaturaActive;
+        document.getElementById('editHumedadActive').checked = humedadActive;
+        document.getElementById('editPhActive').checked = phActive;
+
+        // Configurar la acción del formulario
         document.getElementById('editParcelaForm').action = `/parcelas/actualizar/${id}`;
+
+        // Mostrar el modal
         const modal = new bootstrap.Modal(document.getElementById('editParcelaModal'));
         modal.show();
     }
 </script>
+
+
+    <script>
+        async function obtenerCantidadAlertasNoVistas() {
+            try {
+                const response = await fetch('/alertas/cantidad-no-vistas');
+                if (response.ok) {
+                    const data = await response.json();
+                    const alertCountElement = document.getElementById('alertCount');
+                    if (data.cantidad > 0) {
+                        alertCountElement.textContent = data.cantidad;
+                        alertCountElement.classList.remove('d-none');
+                    } else {
+                        alertCountElement.classList.add('d-none');
+                    }
+                } else {
+                    console.error('Error al obtener la cantidad de alertas no vistas');
+                }
+            } catch (error) {
+                console.error('Error al obtener la cantidad de alertas no vistas:', error);
+            }
+        }
+
+        // Llamar a la función al cargar la página
+        document.addEventListener('DOMContentLoaded', obtenerCantidadAlertasNoVistas);
+
+        // Llamar a la función en cada cambio de vista (si usas navegación dinámica)
+        document.addEventListener('viewChange', obtenerCantidadAlertasNoVistas);
+    </script>
+
+
 {% endblock %}
