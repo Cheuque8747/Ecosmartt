@@ -2,157 +2,472 @@
 
 {% block title %}Clima - EcoSmart{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Header del clima */
+    .weather-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .weather-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 20s infinite ease-in-out;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(-30px, -30px) rotate(180deg); }
+    }
+    
+    /* Selector de parcelas mejorado */
+    .parcela-selector {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .parcela-selector .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .parcela-selector .form-select:focus {
+        border-color: var(--ecosmart-primary);
+        box-shadow: 0 0 0 0.2rem rgba(44, 140, 99, 0.25);
+    }
+    
+    /* Tarjeta de clima actual */
+    .current-weather-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .current-weather-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    
+    .weather-main {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+    
+    .weather-temp {
+        font-size: 4rem;
+        font-weight: 700;
+        color: #2c3e50;
+        line-height: 1;
+    }
+    
+    .weather-temp sup {
+        font-size: 2rem;
+        font-weight: 400;
+    }
+    
+    .weather-icon-container {
+        position: relative;
+    }
+    
+    .weather-icon {
+        width: 120px;
+        height: 120px;
+        filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+    }
+    
+    .weather-description {
+        font-size: 1.5rem;
+        color: #7f8c8d;
+        text-transform: capitalize;
+        margin-bottom: 2rem;
+    }
+    
+    /* Detalles del clima */
+    .weather-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .weather-detail-item {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .weather-detail-item:hover {
+        background: var(--ecosmart-light);
+        transform: translateY(-3px);
+    }
+    
+    .weather-detail-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .weather-detail-icon.temp { color: #e74c3c; }
+    .weather-detail-icon.humidity { color: #3498db; }
+    .weather-detail-icon.pressure { color: #9b59b6; }
+    .weather-detail-icon.wind { color: #1abc9c; }
+    
+    .weather-detail-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+    }
+    
+    .weather-detail-label {
+        font-size: 0.875rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Botón guardar mejorado */
+    .btn-save-weather {
+        background: linear-gradient(135deg, var(--ecosmart-primary) 0%, var(--ecosmart-secondary) 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(44, 140, 99, 0.3);
+    }
+    
+    .btn-save-weather:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(44, 140, 99, 0.4);
+    }
+    
+    /* Pronóstico mejorado */
+    .forecast-section {
+        margin-top: 3rem;
+    }
+    
+    .forecast-header {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .forecast-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .forecast-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+    
+    .forecast-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+    
+    .forecast-date {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .forecast-time {
+        font-size: 0.875rem;
+        color: #7f8c8d;
+        margin-bottom: 1rem;
+    }
+    
+    .forecast-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1rem;
+        display: block;
+    }
+    
+    .forecast-temp {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #e74c3c;
+        margin-bottom: 0.5rem;
+    }
+    
+    .forecast-details {
+        font-size: 0.875rem;
+        color: #7f8c8d;
+        line-height: 1.6;
+    }
+    
+    .forecast-details i {
+        width: 16px;
+        text-align: center;
+        margin-right: 0.25rem;
+    }
+    
+    /* Alertas personalizadas */
+    .alert-weather {
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .alert-weather i {
+        font-size: 2rem;
+    }
+    
+    /* Animaciones */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .weather-animate {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .weather-temp {
+            font-size: 3rem;
+        }
+        
+        .weather-icon {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .weather-main {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h2><i class="fas fa-cloud-sun me-2"></i>Clima y Pronóstico</h2>
-
-
-    {% if user and user.role != 'agricultor' %}
-    <!-- Selector de parcelas para técnicos y agrónomos -->
-    <form method="get" action="/clima/vista" class="row g-3 mb-4">
-        <div class="col-md-6">
-            <select name="parcela_id" class="form-select" onchange="this.form.submit()">
-                <option value="">Seleccione una parcela</option>
-                {% for p in parcelas %}
-                <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
-                    {{ p.nombre }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-    </form>
-    {% endif %}
-
-
-    {% if parcela_nombre and ciudad %}
-    <div class="mb-4">
-        <h4>Parcela: {{ parcela_nombre }}</h4>
-        <h5>Ubicación: {{ ciudad }}</h5>
+    <!-- Header -->
+    <div class="weather-header weather-animate">
+        <h1 class="mb-0">
+            <i class="fas fa-cloud-sun me-3"></i>
+            Centro Meteorológico
+        </h1>
+        <p class="mb-0 mt-2 opacity-90">Monitoreo climático en tiempo real para tus cultivos</p>
     </div>
-    {% endif %}
+
     {% if user and user.role != 'agricultor' %}
-    <div class="mb-4">
-        <button id="guardarClima" class="btn btn-primary">
-            <i class="fas fa-save me-1"></i>Guardar Clima Actual
-        </button>
+    <!-- Selector de parcelas mejorado -->
+    <div class="parcela-selector weather-animate">
+        <form method="get" action="/clima/vista">
+            <div class="row align-items-end">
+                <div class="col-md-8">
+                    <label for="parcela_id" class="form-label fw-bold mb-2">
+                        <i class="fas fa-map-marker-alt me-2 text-success"></i>
+                        Seleccionar Parcela
+                    </label>
+                    <select name="parcela_id" id="parcela_id" class="form-select form-select-lg" onchange="this.form.submit()">
+                        <option value="">-- Seleccione una parcela --</option>
+                        {% for p in parcelas %}
+                        <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
+                            {{ p.nombre }} - {{ p.ubicacion }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if parcela_id %}
+                    <button id="guardarClima" class="btn btn-save-weather">
+                        <i class="fas fa-save me-2"></i>
+                        Guardar Clima Actual
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
     </div>
     {% endif %}
 
     {% if clima_actual %}
-    <!-- Clima actual -->
-<div class="card mb-4">
-    <div class="card-body">
-        <h5 class="card-title">Clima Actual</h5>
-        <p class="card-text">
-            <strong>Temperatura:</strong> {{ clima_actual["main"]["temp"] }} °C<br>
-            <strong>Humedad:</strong> {{ clima_actual["main"]["humidity"] }} %<br>
-            <strong>Presión:</strong> {{ clima_actual["main"]["pressure"] }} hPa<br>
-            <strong>Viento:</strong> {{ clima_actual["wind"]["speed"] }} m/s<br>
-            <strong>Descripción:</strong> {{ clima_actual["weather"][0]["description"] }}
-        </p>
+    <!-- Clima actual mejorado -->
+    <div class="current-weather-card weather-animate">
+        {% if parcela_nombre and ciudad %}
+        <div class="mb-3">
+            <h3 class="mb-1">{{ parcela_nombre }}</h3>
+            <p class="text-muted mb-0">
+                <i class="fas fa-map-pin me-1"></i>
+                {{ ciudad }}
+            </p>
+        </div>
+        {% endif %}
+        
+        <div class="weather-main">
+            <div>
+                <div class="weather-temp">
+                    {{ clima_actual["main"]["temp"]|round|int }}<sup>°C</sup>
+                </div>
+                <div class="weather-description">
+                    {{ clima_actual["weather"][0]["description"] }}
+                </div>
+            </div>
+            <div class="weather-icon-container">
+                <img src="https://openweathermap.org/img/wn/{{ clima_actual["weather"][0]["icon"] }}@4x.png" 
+                     alt="icono clima" 
+                     class="weather-icon">
+            </div>
+        </div>
+        
+        <div class="weather-details">
+            <div class="weather-detail-item">
+                <i class="fas fa-temperature-high weather-detail-icon temp"></i>
+                <div class="weather-detail-value">{{ clima_actual["main"]["feels_like"]|round|int }}°C</div>
+                <div class="weather-detail-label">Sensación</div>
+            </div>
+            <div class="weather-detail-item">
+                <i class="fas fa-tint weather-detail-icon humidity"></i>
+                <div class="weather-detail-value">{{ clima_actual["main"]["humidity"] }}%</div>
+                <div class="weather-detail-label">Humedad</div>
+            </div>
+            <div class="weather-detail-item">
+                <i class="fas fa-tachometer-alt weather-detail-icon pressure"></i>
+                <div class="weather-detail-value">{{ clima_actual["main"]["pressure"] }}</div>
+                <div class="weather-detail-label">Presión (hPa)</div>
+            </div>
+            <div class="weather-detail-item">
+                <i class="fas fa-wind weather-detail-icon wind"></i>
+                <div class="weather-detail-value">{{ clima_actual["wind"]["speed"] }}</div>
+                <div class="weather-detail-label">Viento (m/s)</div>
+            </div>
+        </div>
     </div>
-</div>
     {% else %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i>No hay datos de clima actual para esta parcela.
+    <div class="alert alert-weather alert-info weather-animate">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>Sin datos disponibles</strong><br>
+            Selecciona una parcela para ver información meteorológica actualizada.
+        </div>
     </div>
     {% endif %}
 
     {% if pronostico %}
-    <!-- Pronóstico -->
-    <h5>Pronóstico de 5 días cada 3 horas</h5>
-    <div class="row">
-        {% for dia in pronostico.list %}
-        <div class="col-md-4">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h6 class="card-title">{{ dia.dt_txt.split(' ')[0] }}</h6>
-                    <p class="card-text">
-                        <img src="https://openweathermap.org/img/wn/{{ dia.weather[0].icon }}.png" alt="icono clima">
-                        <strong>{{ dia.weather[0].description }}</strong><br>
-                        Temperatura: {{ dia.main.temp }} °C<br>
-                        Humedad: {{ dia.main.humidity }} %<br>
-                        Viento: {{ dia.wind.speed }} m/s
-                    </p>
+    <!-- Pronóstico mejorado -->
+    <div class="forecast-section weather-animate">
+        <h2 class="forecast-header">
+            <i class="fas fa-calendar-alt text-primary"></i>
+            Pronóstico Extendido
+        </h2>
+        
+        <div class="forecast-grid">
+            {% for dia in pronostico.list[:12] %}
+            <div class="forecast-card">
+                <div class="forecast-date">
+                    {{ dia.dt_txt.split(' ')[0] }}
+                </div>
+                <div class="forecast-time">
+                    {{ dia.dt_txt.split(' ')[1][:5] }}
+                </div>
+                <img src="https://openweathermap.org/img/wn/{{ dia.weather[0].icon }}@2x.png" 
+                     alt="icono" 
+                     class="forecast-icon">
+                <div class="forecast-temp">
+                    {{ dia.main.temp|round|int }}°C
+                </div>
+                <div class="forecast-details">
+                    <div><i class="fas fa-tint text-info"></i> {{ dia.main.humidity }}%</div>
+                    <div><i class="fas fa-wind text-success"></i> {{ dia.wind.speed }} m/s</div>
+                    <div class="text-capitalize mt-1">{{ dia.weather[0].description }}</div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i>No hay datos de pronóstico disponibles.
     </div>
     {% endif %}
 </div>
 
-
 {% block scripts %}
+{{ super() }}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-    const guardarClimaButton = document.getElementById('guardarClima');
-
-    const guardarClimaHandler = async function () {
-        guardarClimaButton.disabled = true;  // Deshabilitar el botón para evitar múltiples clics
-
-        const ciudad = "{{ ciudad }}";
-        if (!ciudad) {
-            alert("No se puede guardar el clima porque no se ha seleccionado una parcela.");
-            guardarClimaButton.disabled = false;  // Habilitar el botón nuevamente
-            return;
-        }
-
-        try {
-            const response = await fetch(`/clima/actual?ciudad=${ciudad}`, {
-                method: 'GET'
-            });
-            if (response.ok) {
-                alert("Clima guardado correctamente.");
-                location.reload(); // Recargar la página para reflejar los cambios
-            } else {
-                const error = await response.json();
-                alert(`Error al guardar el clima: ${error.detail}`);
-            }
-        } catch (err) {
-            console.error("Error al guardar el clima:", err);
-            alert("Ocurrió un error al guardar el clima.");
-        } finally {
-            guardarClimaButton.disabled = false;  // Habilitar el botón nuevamente
-        }
-    };
-
-    guardarClimaButton?.addEventListener('click', guardarClimaHandler);
-});
-</script>
-
-<script>
-        async function obtenerCantidadAlertasNoVistas() {
-            try {
-                const response = await fetch('/alertas/cantidad-no-vistas');
-                if (response.ok) {
-                    const data = await response.json();
-                    const alertCountElement = document.getElementById('alertCount');
-                    if (data.cantidad > 0) {
-                        alertCountElement.textContent = data.cantidad;
-                        alertCountElement.classList.remove('d-none');
-                    } else {
-                        alertCountElement.classList.add('d-none');
-                    }
-                } else {
-                    console.error('Error al obtener la cantidad de alertas no vistas');
+        const guardarClimaButton = document.getElementById('guardarClima');
+        
+        if (guardarClimaButton) {
+            guardarClimaButton.addEventListener('click', async function() {
+                this.disabled = true;
+                const originalContent = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                
+                const ciudad = "{{ ciudad }}";
+                if (!ciudad) {
+                    this.disabled = false;
+                    this.innerHTML = originalContent;
+                    alert("No se puede guardar el clima porque no se ha seleccionado una parcela.");
+                    return;
                 }
-            } catch (error) {
-                console.error('Error al obtener la cantidad de alertas no vistas:', error);
-            }
+
+                try {
+                    const response = await fetch(`/clima/actual?ciudad=${encodeURIComponent(ciudad)}`, {
+                        method: 'GET'
+                    });
+                    
+                    if (response.ok) {
+                        this.innerHTML = '<i class="fas fa-check me-2"></i>Guardado!';
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        const error = await response.json();
+                        alert(`Error al guardar el clima: ${error.detail}`);
+                        this.disabled = false;
+                        this.innerHTML = originalContent;
+                    }
+                } catch (err) {
+                    console.error("Error al guardar el clima:", err);
+                    alert("Ocurrió un error al guardar el clima.");
+                    this.disabled = false;
+                    this.innerHTML = originalContent;
+                }
+            });
         }
-
-        // Llamar a la función al cargar la página
-        document.addEventListener('DOMContentLoaded', obtenerCantidadAlertasNoVistas);
-
-        // Llamar a la función en cada cambio de vista (si usas navegación dinámica)
-        document.addEventListener('viewChange', obtenerCantidadAlertasNoVistas);
-    </script>
+    });
+</script>
 {% endblock %}
-
-
 {% endblock %}

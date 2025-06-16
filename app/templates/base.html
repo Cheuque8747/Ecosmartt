@@ -1,430 +1,435 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}EcoSmart - Plataforma de Agricultura Inteligente{% endblock %}</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Chart.js para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        :root {
-            --ecosmart-primary: #2c8c63;
-            --ecosmart-secondary: #4ba375;
-            --ecosmart-light: #e9f5f0;
-            --ecosmart-dark: #1a5c40;
-            --ecosmart-hover: #359268;
-        }
-
-        html, body {
-            height: 100%;
-        }
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .main-content {
-            flex: 1 0 auto;
-        }
-
-        /* Navbar mejorado */
-        .navbar-ecosmart {
-            background: linear-gradient(135deg, var(--ecosmart-primary) 0%, var(--ecosmart-secondary) 100%);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 0.75rem 0;
-        }
-
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white !important;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-brand:hover {
-            transform: scale(1.05);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .navbar-brand i {
-            color: #90ee90;
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
-        }
-
-        .navbar-nav .nav-link {
-            color: rgba(255, 255, 255, 0.9) !important;
-            font-weight: 500;
-            padding: 0.5rem 1rem !important;
-            margin: 0 0.25rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .navbar-nav .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: white !important;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .navbar-nav .nav-link i {
-            width: 16px;
-            text-align: center;
-            margin-right: 0.5rem;
-        }
-
-        /* Campanita de alertas mejorada */
-        .alert-dropdown {
-            position: relative;
-        }
-
-        .alert-bell {
-            color: rgba(255, 255, 255, 0.9) !important;
-            font-size: 1.1rem;
-            padding: 0.5rem 1rem !important;
-            margin: 0 0.25rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            position: relative;
-            background: none;
-            border: none;
-        }
-
-        .alert-bell:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: white !important;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .alert-bell:focus {
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
-        }
-
-        .alert-badge {
-            position: absolute;
-            top: 0.25rem;
-            right: 0.5rem;
-            background: linear-gradient(45deg, #dc3545, #e74c3c);
-            color: white;
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 0.2rem 0.4rem;
-            border-radius: 10px;
-            min-width: 18px;
-            text-align: center;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        /* Dropdown mejorado */
-        .dropdown-menu {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            padding: 0.5rem 0;
-            margin-top: 0.5rem;
-            background: white;
-        }
-
-        .dropdown-item {
-            padding: 0.75rem 1.5rem;
-            color: #333;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--ecosmart-light);
-            color: var(--ecosmart-dark);
-            transform: translateX(4px);
-        }
-
-        .dropdown-item i {
-            width: 16px;
-            text-align: center;
-            margin-right: 0.5rem;
-            color: var(--ecosmart-primary);
-        }
-
-        .dropdown-divider {
-            margin: 0.5rem 0;
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        /* Botones de usuario mejorados */
-        .user-buttons .btn {
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            margin-left: 0.5rem;
-        }
-
-        .user-buttons .btn:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.6);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .user-buttons .btn i {
-            margin-right: 0.5rem;
-        }
-
-        /* Responsive mejoras */
-        @media (max-width: 991.98px) {
-            .navbar-nav {
-                padding-top: 1rem;
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}EcoSmart - Plataforma de Agricultura Inteligente{% endblock %}</title>
+        
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        
+        <!-- Font Awesome para iconos -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        
+        <!-- Chart.js para gráficos -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        
+        <style>
+            :root {
+                --ecosmart-primary: #2c8c63;
+                --ecosmart-secondary: #4ba375;
+                --ecosmart-light: #e9f5f0;
+                --ecosmart-dark: #1a5c40;
+                --ecosmart-hover: #359268;
             }
-            
+
+            html, body {
+                height: 100%;
+            }
+            body {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            .main-content {
+                flex: 1 0 auto;
+            }
+
+            /* Navbar mejorado */
+            .navbar-ecosmart {
+                background: linear-gradient(135deg, var(--ecosmart-primary) 0%, var(--ecosmart-secondary) 100%);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 0.75rem 0;
+            }
+
+            .navbar-brand {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: white !important;
+                transition: all 0.3s ease;
+            }
+
+            .navbar-brand:hover {
+                transform: scale(1.05);
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+            .navbar-brand i {
+                color: #90ee90;
+                filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+            }
+
             .navbar-nav .nav-link {
-                margin: 0.25rem 0;
+                color: rgba(255, 255, 255, 0.9) !important;
+                font-weight: 500;
+                padding: 0.5rem 1rem !important;
+                margin: 0 0.25rem;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                position: relative;
             }
-            
-            .user-buttons {
-                margin-top: 1rem;
-                padding-top: 1rem;
-                border-top: 1px solid rgba(255, 255, 255, 0.2);
+
+            .navbar-nav .nav-link:hover {
+                background-color: rgba(255, 255, 255, 0.15);
+                color: white !important;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             }
-            
-            .user-buttons .btn {
-                margin: 0.25rem 0;
+
+            .navbar-nav .nav-link i {
+                width: 16px;
+                text-align: center;
+                margin-right: 0.5rem;
+            }
+
+            /* Campanita de alertas mejorada */
+            .alert-dropdown {
+                position: relative;
+            }
+
+            .alert-bell {
+                color: rgba(255, 255, 255, 0.9) !important;
+                font-size: 1.1rem;
+                padding: 0.5rem 1rem !important;
+                margin: 0 0.25rem;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                position: relative;
+                background: none;
+                border: none;
+            }
+
+            .alert-bell:hover {
+                background-color: rgba(255, 255, 255, 0.15);
+                color: white !important;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .alert-bell:focus {
+                box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+            }
+
+            .alert-badge {
+                position: absolute;
+                top: 0.25rem;
+                right: 0.5rem;
+                background: linear-gradient(45deg, #dc3545, #e74c3c);
+                color: white;
+                font-size: 0.65rem;
+                font-weight: 700;
+                padding: 0.2rem 0.4rem;
+                border-radius: 10px;
+                min-width: 18px;
+                text-align: center;
+                border: 2px solid white;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+
+            /* Dropdown mejorado */
+            .dropdown-menu {
+                border: none;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                padding: 0.5rem 0;
+                margin-top: 0.5rem;
+                background: white;
+            }
+
+            .dropdown-item {
+                padding: 0.75rem 1.5rem;
+                color: #333;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                border: none;
+                background: none;
                 width: 100%;
+                text-align: left;
             }
-        }
 
-        /* Estilos existentes para el resto de la página */
-        .bg-ecosmart {
-            background-color: var(--ecosmart-primary);
-        }
-        
-        .sensor-card {
-            border-left: 5px solid #ccc;
-            transition: transform 0.2s;
-        }
-        
-        .sensor-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .sensor-active {
-            color: #28a745;
-        }
-        
-        .sensor-inactive {
-            color: #6c757d;
-        }
-        
-        .card-header {
-            background-color: rgba(0,0,0,0.03);
-        }
-        
-        .tipo-temperatura { border-left-color: #dc3545; }
-        .tipo-luz { border-left-color: #ffc107; }
-        .tipo-ph { border-left-color: #17a2b8; }
-        .tipo-conductividad { border-left-color: #6610f2; }
-        .tipo-humedad { border-left-color: #20c997; }
-    </style>
-    
-    {% block head %}{% endblock %}
-    {% block extra_css %}{% endblock %}
-</head>
-<body>
+            .dropdown-item:hover {
+                background-color: var(--ecosmart-light);
+                color: var(--ecosmart-dark);
+                transform: translateX(4px);
+            }
 
-    {% if user %}
-        <p>Rol del usuario: {{ user.role }}</p>
-    {% else %}
-        <p>Usuario no autenticado</p>
-    {% endif %}
-    
-    <!-- Navbar Mejorado -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-ecosmart">
-        <div class="container">
-            <a class="navbar-brand" href="/inicio">
-                <i class="fas fa-leaf me-2"></i>EcoSmart
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/sensores">
-                            <i class="fas fa-microchip"></i>Sensores
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ia/chat">
-                            <i class="fas fa-robot"></i>Asistente IA
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/clima/vista">
-                            <i class="fas fa-cloud-sun"></i>Datos Clima
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/clima/historial">
-                            <i class="fas fa-history"></i>Historial Clima
-                        </a>
-                    </li>
-                    {% if user and user.role == 'tecnico' %}
+            .dropdown-item i {
+                width: 16px;
+                text-align: center;
+                margin-right: 0.5rem;
+                color: var(--ecosmart-primary);
+            }
+
+            .dropdown-divider {
+                margin: 0.5rem 0;
+                border-color: rgba(0, 0, 0, 0.1);
+            }
+
+            /* Botones de usuario mejorados */
+            .user-buttons .btn {
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                font-weight: 500;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                margin-left: 0.5rem;
+            }
+
+            .user-buttons .btn:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.6);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .user-buttons .btn i {
+                margin-right: 0.5rem;
+            }
+
+            /* Responsive mejoras */
+            @media (max-width: 991.98px) {
+                .navbar-nav {
+                    padding-top: 1rem;
+                }
+                
+                .navbar-nav .nav-link {
+                    margin: 0.25rem 0;
+                }
+                
+                .user-buttons {
+                    margin-top: 1rem;
+                    padding-top: 1rem;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                .user-buttons .btn {
+                    margin: 0.25rem 0;
+                    width: 100%;
+                }
+            }
+
+            /* Estilos existentes para el resto de la página */
+            .bg-ecosmart {
+                background-color: var(--ecosmart-primary);
+            }
+            
+            .sensor-card {
+                border-left: 5px solid #ccc;
+                transition: transform 0.2s;
+            }
+            
+            .sensor-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            
+            .sensor-active {
+                color: #28a745;
+            }
+            
+            .sensor-inactive {
+                color: #6c757d;
+            }
+            
+            .card-header {
+                background-color: rgba(0,0,0,0.03);
+            }
+            
+            .tipo-temperatura { border-left-color: #dc3545; }
+            .tipo-luz { border-left-color: #ffc107; }
+            .tipo-ph { border-left-color: #17a2b8; }
+            .tipo-conductividad { border-left-color: #6610f2; }
+            .tipo-humedad { border-left-color: #20c997; }
+        </style>
+        
+        {% block head %}{% endblock %}
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body>
+
+        {% if user %}
+            <p>Rol del usuario: {{ user.role }}</p>
+        {% else %}
+            <p>Usuario no autenticado</p>
+        {% endif %}
+        
+        <!-- Navbar Mejorado -->
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-ecosmart">
+            <div class="container">
+                <a class="navbar-brand" href="/inicio">
+                    <i class="fas fa-leaf me-2"></i>EcoSmart
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="/parcelas/vista">
-                                <i class="fas fa-map"></i>Parcelas
+                            <a class="nav-link" href="/sensores">
+                                <i class="fas fa-microchip"></i>Sensores
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/umbrales/vista">
-                                <i class="fas fa-sliders-h"></i>Configuración
+                            <a class="nav-link" href="/ia/chat">
+                                <i class="fas fa-robot"></i>Asistente IA
                             </a>
                         </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/parcelas/trabajadores">
-                            <i class="fas fa-users"></i>Trabajadores
-                        </a>
-                    </li>
-                </ul>
-
-                <ul class="navbar-nav">
-                    <!-- Campanita de alertas mejorada -->
-                    <li class="nav-item dropdown alert-dropdown">
-                        <button class="alert-bell dropdown-toggle" type="button" id="alertDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-bell"></i>
-                            <span id="alertCount" class="alert-badge d-none"></span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="alertDropdown">
-                            <li>
-                                <a class="dropdown-item" href="/alertas/historial">
-                                    <i class="fas fa-history"></i>Ver historial de alertas
+                        <li class="nav-item">
+                            <a class="nav-link" href="/graficos/dashboard">
+                                <i class="fas fa-chart-line"></i>Gráficos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/clima/vista">
+                                <i class="fas fa-cloud-sun"></i>Datos Clima
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/clima/historial">
+                                <i class="fas fa-history"></i>Historial Clima
+                            </a>
+                        </li>
+                        {% if user and user.role == 'tecnico' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/parcelas/vista">
+                                    <i class="fas fa-map"></i>Parcelas
                                 </a>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <button class="dropdown-item" onclick="marcarAlertasVistas()">
-                                    <i class="fas fa-check"></i>Marcar como vistas
-                                </button>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/umbrales/vista">
+                                    <i class="fas fa-sliders-h"></i>Configuración
+                                </a>
                             </li>
-                        </ul>
-                    </li>
-                </ul>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/parcelas/trabajadores">
+                                <i class="fas fa-users"></i>Trabajadores
+                            </a>
+                        </li>
+                    </ul>
 
-                <div class="user-buttons d-flex">
-                    {% if request.cookies.get("access_token") %}
-                        <a href="/auth/perfil" class="btn btn-outline-light">
-                            <i class="fas fa-user"></i>Perfil
-                        </a>
-                        <a href="/auth/logout" class="btn btn-outline-light">
-                            <i class="fas fa-sign-out-alt"></i>Cerrar sesión
-                        </a>
-                    {% endif %}
+                    <ul class="navbar-nav">
+                        <!-- Campanita de alertas mejorada -->
+                        <li class="nav-item dropdown alert-dropdown">
+                            <button class="alert-bell dropdown-toggle" type="button" id="alertDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell"></i>
+                                <span id="alertCount" class="alert-badge d-none"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="alertDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="/alertas/historial">
+                                        <i class="fas fa-history"></i>Ver historial de alertas
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item" onclick="marcarAlertasVistas()">
+                                        <i class="fas fa-check"></i>Marcar como vistas
+                                    </button>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <div class="user-buttons d-flex">
+                        {% if request.cookies.get("access_token") %}
+                            <a href="/auth/perfil" class="btn btn-outline-light">
+                                <i class="fas fa-user"></i>Perfil
+                            </a>
+                            <a href="/auth/logout" class="btn btn-outline-light">
+                                <i class="fas fa-sign-out-alt"></i>Cerrar sesión
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
+        </nav>
+
+        <!-- Contenido principal -->   
+        <div class="container-fluid main-content">
+            {% block content %}{% endblock %}
         </div>
-    </nav>
 
-    <!-- Contenido principal -->   
-    <div class="container-fluid main-content">
-        {% block content %}{% endblock %}
-    </div>
-
-    <!-- Footer -->
-    <footer class="bg-ecosmart mt-5 py-3">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="mb-0">&copy; 2025 EcoSmart - Plataforma de Agricultura Inteligente</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <p class="mb-0">Proyecto de Programación - Universidad de Talca</p>
+        <!-- Footer -->
+        <footer class="bg-ecosmart mt-5 py-3">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-0">&copy; 2025 EcoSmart - Plataforma de Agricultura Inteligente</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <p class="mb-0">Proyecto de Programación - Universidad de Talca</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </footer>
+        </footer>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    {% block scripts %}
-    <script>
-        async function obtenerCantidadAlertasNoVistas() {
-            try {
-                const response = await fetch('/alertas/cantidad-no-vistas');
-                if (response.ok) {
-                    const data = await response.json();
-                    const alertCountElement = document.getElementById('alertCount');
-                    if (data.cantidad > 0) {
-                        alertCountElement.textContent = data.cantidad;
-                        alertCountElement.classList.remove('d-none');
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        
+        {% block scripts %}
+        <script>
+            async function obtenerCantidadAlertasNoVistas() {
+                try {
+                    const response = await fetch('/alertas/cantidad-no-vistas');
+                    if (response.ok) {
+                        const data = await response.json();
+                        const alertCountElement = document.getElementById('alertCount');
+                        if (data.cantidad > 0) {
+                            alertCountElement.textContent = data.cantidad;
+                            alertCountElement.classList.remove('d-none');
+                        } else {
+                            alertCountElement.classList.add('d-none');
+                        }
                     } else {
-                        alertCountElement.classList.add('d-none');
+                        console.error('Error al obtener la cantidad de alertas no vistas');
                     }
-                } else {
-                    console.error('Error al obtener la cantidad de alertas no vistas');
+                } catch (error) {
+                    console.error('Error al obtener la cantidad de alertas no vistas:', error);
                 }
-            } catch (error) {
-                console.error('Error al obtener la cantidad de alertas no vistas:', error);
             }
-        }
 
-        async function marcarAlertasVistas() {
-            try {
-                const response = await fetch('/alertas/marcar-vistas', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
+            async function marcarAlertasVistas() {
+                try {
+                    const response = await fetch('/alertas/marcar-vistas', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    if (response.ok) {
+                        // Actualizar el contador
+                        obtenerCantidadAlertasNoVistas();
+                        // Cerrar el dropdown
+                        const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('alertDropdown'));
+                        if (dropdown) {
+                            dropdown.hide();
+                        }
+                    } else {
+                        console.error('Error al marcar alertas como vistas');
                     }
-                });
-                if (response.ok) {
-                    // Actualizar el contador
-                    obtenerCantidadAlertasNoVistas();
-                    // Cerrar el dropdown
-                    const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('alertDropdown'));
-                    if (dropdown) {
-                        dropdown.hide();
-                    }
-                } else {
-                    console.error('Error al marcar alertas como vistas');
+                } catch (error) {
+                    console.error('Error al marcar alertas como vistas:', error);
                 }
-            } catch (error) {
-                console.error('Error al marcar alertas como vistas:', error);
             }
-        }
 
-        // Llamar a la función al cargar la página
-        document.addEventListener('DOMContentLoaded', obtenerCantidadAlertasNoVistas);
+            // Llamar a la función al cargar la página
+            document.addEventListener('DOMContentLoaded', obtenerCantidadAlertasNoVistas);
 
-        // Llamar a la función en cada cambio de vista (si usas navegación dinámica)
-        document.addEventListener('viewChange', obtenerCantidadAlertasNoVistas);
+            // Llamar a la función en cada cambio de vista (si usas navegación dinámica)
+            document.addEventListener('viewChange', obtenerCantidadAlertasNoVistas);
 
-        // Actualizar alertas cada 30 segundos
-        setInterval(obtenerCantidadAlertasNoVistas, 30000);
-    </script>
-    {% endblock %}
-</body>
-</html>
+            // Actualizar alertas cada 30 segundos
+            setInterval(obtenerCantidadAlertasNoVistas, 30000);
+        </script>
+        {% endblock %}
+    </body>
+    </html>
