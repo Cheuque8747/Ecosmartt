@@ -28,16 +28,14 @@
                         onclick="openEditParcelaModal(this)"
                         data-id="{{ p.id }}" 
                         data-nombre="{{ p.nombre }}" 
+                        data-nombre-ubicacion="{{ p.nombre_ubicacion }}" 
                         data-ubicacion="{{ p.ubicacion }}" 
                         data-temperatura-min="{{ p.temperatura_min }}" 
                         data-temperatura-max="{{ p.temperatura_max }}" 
                         data-humedad-min="{{ p.humedad_min }}" 
                         data-humedad-max="{{ p.humedad_max }}" 
                         data-ph-min="{{ p.ph_min }}" 
-                        data-ph-max="{{ p.ph_max }}" 
-                        data-temperatura-active="{{ p.temperatura_active|lower }}" 
-                        data-humedad-active="{{ p.humedad_active|lower }}" 
-                        data-ph-active="{{ p.ph_active|lower }}">
+                        data-ph-max="{{ p.ph_max }}">
                         <i class="fas fa-edit"></i> Editar
                     </button>
                     <form method="post" action="/parcelas/borrar/{{ p.id }}" style="display:inline;">
@@ -66,10 +64,20 @@
                         <label class="form-label">Nombre de la Parcela</label>
                         <input type="text" name="nombre" class="form-control" placeholder="Nombre de la parcela" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ubicación</label>
-                        <input type="text" name="ubicacion" class="form-control" placeholder="Ubicación" required>
-                    </div>
+        <div class="mb-3">
+            <label class="form-label">Nombre de la Ubicación</label>
+            <input type="text" id="nombreUbicacion" name="nombre_ubicacion" class="form-control" placeholder="Nombre de la ubicación" readonly required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Coordenadas</label>
+            <input type="text" id="coordenadas" name="ubicacion" class="form-control" placeholder="Latitud, Longitud" readonly required>
+        </div>
+    
+
+         <div class="mb-3">
+            <label class="form-label">Mapa</label>
+            <div id="map" style="height: 400px;"></div>
+        </div>
                     <div class="row">
                         <div class="col-md-6">
                             <label class="form-label">Temperatura Mínima</label>
@@ -140,8 +148,16 @@
                         <input type="text" id="editParcelaNombre" name="nombre" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Ubicación</label>
-                        <input type="text" id="editParcelaUbicacion" name="ubicacion" class="form-control" required>
+                        <label class="form-label">Nombre de la Ubicación</label>
+                        <input type="text" id="editNombreUbicacion" name="nombre_ubicacion" class="form-control" readonly required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Coordenadas</label>
+                        <input type="text" id="editCoordenadas" name="ubicacion" class="form-control" readonly required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mapa</label>
+                        <div id="editMap" style="height: 400px;"></div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -166,11 +182,11 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label class="form-label">pH Mínimo</label>
-                            <input type="number" id="editphMin" name="ph_min" class="form-control" step="0.1">
+                            <input type="number" id="editPhMin" name="ph_min" class="form-control" step="0.1">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">pH Máximo</label>
-                            <input type="number" id="editphMax" name="ph_max" class="form-control" step="0.1">
+                            <input type="number" id="editPhMax" name="ph_max" class="form-control" step="0.1">
                         </div>
                     </div>
                     <div class="row">
@@ -199,44 +215,6 @@
 
 {% endblock %}
 {% block scripts %}
-<script>
-    function openEditParcelaModal(button) {
-        // Obtener los datos de los atributos del botón
-        const id = button.getAttribute('data-id');
-        const nombre = button.getAttribute('data-nombre');
-        const ubicacion = button.getAttribute('data-ubicacion');
-        const temperaturaMin = button.getAttribute('data-temperatura-min');
-        const temperaturaMax = button.getAttribute('data-temperatura-max');
-        const humedadMin = button.getAttribute('data-humedad-min');
-        const humedadMax = button.getAttribute('data-humedad-max');
-        const phMin = button.getAttribute('data-ph-min');
-        const phMax = button.getAttribute('data-ph-max');
-        const temperaturaActive = button.getAttribute('data-temperatura-active') === 'true';
-        const humedadActive = button.getAttribute('data-humedad-active') === 'true';
-        const phActive = button.getAttribute('data-ph-active') === 'true';
-
-        // Rellenar los campos del formulario
-        document.getElementById('editParcelaId').value = id;
-        document.getElementById('editParcelaNombre').value = nombre;
-        document.getElementById('editParcelaUbicacion').value = ubicacion;
-        document.getElementById('editTemperaturaMin').value = temperaturaMin;
-        document.getElementById('editTemperaturaMax').value = temperaturaMax;
-        document.getElementById('editHumedadMin').value = humedadMin;
-        document.getElementById('editHumedadMax').value = humedadMax;
-        document.getElementById('editphMin').value = phMin;
-        document.getElementById('editphMax').value = phMax;
-        document.getElementById('editTemperaturaActive').checked = temperaturaActive;
-        document.getElementById('editHumedadActive').checked = humedadActive;
-        document.getElementById('editPhActive').checked = phActive;
-
-        // Configurar la acción del formulario
-        document.getElementById('editParcelaForm').action = `/parcelas/actualizar/${id}`;
-
-        // Mostrar el modal
-        const modal = new bootstrap.Modal(document.getElementById('editParcelaModal'));
-        modal.show();
-    }
-</script>
 
 
     <script>
@@ -268,4 +246,128 @@
     </script>
 
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+
+<script>
+    let addMap, addMarker;
+    let editMap, editMarker;
+
+    function initAddMap() {
+      const coordInput = document.getElementById('coordenadas');
+      const nameInput  = document.getElementById('nombreUbicacion');
+
+      addMap = L.map('map').setView([0, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        attribution:'&copy; OpenStreetMap contributors'
+      }).addTo(addMap);
+
+      addMap.on('click', async e => {
+        const {lat,lng} = e.latlng;
+        if (addMarker) addMap.removeLayer(addMarker);
+        addMarker = L.marker([lat,lng]).addTo(addMap);
+        coordInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+          const data = await res.json();
+          nameInput.value = data.display_name || 'Desconocida';
+        } catch {
+          nameInput.value = 'Desconocida';
+        }
+      });
+
+      L.Control.geocoder({ defaultMarkGeocode: false })
+        .on('markgeocode', e => {
+          const c = e.geocode.center;
+          addMap.setView(c,15);
+          if (addMarker) addMap.removeLayer(addMarker);
+          addMarker = L.marker(c).addTo(addMap);
+          coordInput.value = `${c.lat.toFixed(6)}, ${c.lng.toFixed(6)}`;
+          nameInput.value = e.geocode.name;
+        })
+        .addTo(addMap);
+
+      document.getElementById('addParcelaModal')
+        .addEventListener('shown.bs.modal', () => addMap.invalidateSize());
+    }
+
+    function openEditParcelaModal(button) {
+              // Obtener los datos de los atributos del botón
+        const id = button.getAttribute('data-id');
+        const nombre = button.getAttribute('data-nombre');
+        const nombreUbicacion = button.getAttribute('data-nombre-ubicacion');
+        const ubicacion = button.getAttribute('data-ubicacion');
+        const temperaturaMin = button.getAttribute('data-temperatura-min');
+        const temperaturaMax = button.getAttribute('data-temperatura-max');
+        const humedadMin = button.getAttribute('data-humedad-min');
+        const humedadMax = button.getAttribute('data-humedad-max');
+        const phMin = button.getAttribute('data-ph-min');
+        const phMax = button.getAttribute('data-ph-max');
+
+        // Rellenar los campos del formulario
+        document.getElementById('editParcelaId').value = id;
+        document.getElementById('editParcelaNombre').value = nombre;
+        document.getElementById('editNombreUbicacion').value = nombreUbicacion;
+        document.getElementById('editCoordenadas').value = ubicacion;
+        document.getElementById('editTemperaturaMin').value = temperaturaMin;
+        document.getElementById('editTemperaturaMax').value = temperaturaMax;
+        document.getElementById('editHumedadMin').value = humedadMin;
+        document.getElementById('editHumedadMax').value = humedadMax;
+        document.getElementById('editPhMin').value = phMin;
+        document.getElementById('editPhMax').value = phMax;
+
+        document.getElementById('editParcelaForm').action = `/parcelas/actualizar/${id}`;
+
+
+      const editModalEl = document.getElementById('editParcelaModal');
+      new bootstrap.Modal(editModalEl).show();
+
+      if (!editMap) {
+        editMap = L.map('editMap');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+          attribution:'&copy; OpenStreetMap contributors'
+        }).addTo(editMap);
+
+        editMap.on('click', async e => {
+          const {lat,lng} = e.latlng;
+          if (editMarker) editMap.removeLayer(editMarker);
+          editMarker = L.marker([lat,lng]).addTo(editMap);
+          document.getElementById('editCoordenadas').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await res.json();
+            document.getElementById('editNombreUbicacion').value = data.display_name || 'Desconocida';
+          } catch {
+            document.getElementById('editNombreUbicacion').value = 'Desconocida';
+          }
+        });
+
+        L.Control.geocoder({ defaultMarkGeocode: false })
+          .on('markgeocode', e => {
+            const c = e.geocode.center;
+            editMap.setView(c,15);
+            if (editMarker) editMap.removeLayer(editMarker);
+            editMarker = L.marker(c).addTo(editMap);
+            document.getElementById('editCoordenadas').value = `${c.lat.toFixed(6)}, ${c.lng.toFixed(6)}`;
+            document.getElementById('editNombreUbicacion').value = e.geocode.name;
+          })
+          .addTo(editMap);
+
+        editModalEl.addEventListener('shown.bs.modal', () => editMap.invalidateSize());
+      }
+
+      const coords = button.getAttribute('data-ubicacion')
+                       .split(',').map(s => parseFloat(s.trim()));
+      editMap.setView(coords, 15);
+      if (editMarker) editMap.removeLayer(editMarker);
+      editMarker = L.marker(coords).addTo(editMap);
+    }
+
+    // 3) Espera a que el DOM cargue para inicializar el mapa de creación
+    document.addEventListener('DOMContentLoaded', initAddMap);
+  </script>
 {% endblock %}

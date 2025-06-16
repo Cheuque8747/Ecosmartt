@@ -98,7 +98,7 @@ class Parcela(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, nullable=False)
     ubicacion = Column(String, nullable=False)
-
+    nombre_ubicacion = Column(String, nullable=True)  # Nombre de la ubicación 
     # Umbrales como atributos
     temperatura_min = Column(Float, default=0.0)
     temperatura_max = Column(Float, default=0.0)

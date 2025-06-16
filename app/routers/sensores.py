@@ -38,7 +38,7 @@ async def get_sensores(
 
 @router.get(
     "/api/sensores/{sensor_id}",
-    response_model=SensorPydantic,
+    #response_model=SensorPydantic,
     summary="Obtener sensor por ID",
     description="Obtiene la información detallada de un sensor específico por su ID. Requiere autenticación."
 )
@@ -54,6 +54,29 @@ async def get_sensor(
     sensor = sensor_service.obtener_sensor_por_id(db, sensor_id)
     if not sensor:
         raise HTTPException(status_code=404, detail="Sensor no encontrado")
+    
+    # Incluir la información de la parcela asociada
+    parcela = sensor.parcela
+    parcela_info = {
+        "id": parcela.id,
+        "nombre": parcela.nombre,
+        "ubicacion": parcela.ubicacion
+    } if parcela else None
+
+    print(parcela_info["ubicacion"]   )
+    return {
+        "id": sensor.id,
+        "tipo": sensor.tipo,
+        "ubicacion": sensor.ubicacion,
+        "frecuencia_lectura": sensor.frecuencia_lectura,
+        "min_lectura": sensor.min_lectura,
+        "max_lectura": sensor.max_lectura,
+        "ruido": sensor.ruido,
+        "estado": sensor.estado,
+        "promedio": sensor.promedio,
+        "parcela": parcela_info  # Agregar información de la parcela
+    }
+
     return sensor
 
 @router.post(

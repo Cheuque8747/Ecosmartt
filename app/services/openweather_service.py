@@ -35,6 +35,22 @@ class OpenWeatherService:
         response.raise_for_status()
         return response.json()
     
+    def get_current_weather_by_coords(self, lat: float, lon: float):
+        """Obtiene el clima actual usando coordenadas."""
+        url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={os.getenv('OPENWEATHERMAP_API_KEY')}&units=metric&lang=es"
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+
+    def get_forecast_by_coords(self, lat: float, lon: float):
+        """Obtiene el pronóstico usando coordenadas."""
+        url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={os.getenv('OPENWEATHERMAP_API_KEY')}&units=metric&lang=es"
+        response = requests.get(url)
+        response.raise_for_status()
+
+        #print(f"Respuesta de OpenWeather: {response.status_code} - {response.text}")
+        return response.json()
+    
 def guardar_clima(db: Session, data: dict, ubicacion: str):
     parcela = db.query(Parcela).filter(Parcela.ubicacion == ubicacion).first()
     if not parcela:

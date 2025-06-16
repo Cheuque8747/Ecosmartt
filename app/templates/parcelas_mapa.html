@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Parcelas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Mapa de Parcelas</h2>
+
+    <!-- Selector de parcelas -->
+    <form method="get" action="/parcelas/mapa" class="mb-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-8">
+                <label for="parcelaSelect" class="form-label">Selecciona una parcela:</label>
+                <select name="parcela_id" id="parcelaSelect" class="form-select" {% if role == 'agricultor' %}disabled{% endif %}>
+                    {% for parcela in parcelas %}
+                        <option value="{{ parcela.id }}"
+                            {% if parcela_id == parcela.id %}selected{% endif %}>
+                            Parcela {{ parcela.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                {% if role != 'agricultor' %}
+                
+                    <button type="submit" class="btn btn-success mt-4">Ver en el mapa</button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    <!-- Contenedor del mapa -->
+    <div id="map" style="height: 500px; border: 1px solid #ccc;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Leaflet JS y CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    const parcela = {{ parcela_seleccionada | tojson | safe }};
+    const sensores = {{ sensores1 | tojson | safe }};
+
+    console.log("Parcela seleccionada:", parcela);
+console.log("Sensores:", sensores);
+
+    if (parcela && parcela.ubicacion) {
+        const ubicacion = parcela.ubicacion.split(",").map(coord => parseFloat(coord));
+        const mapa = L.map("map").setView(ubicacion, 16);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapa);
+
+        // Marcador de la parcela
+        L.marker(ubicacion)
+            .addTo(mapa)
+            .bindPopup(`<strong>Parcela:</strong> ${parcela.nombre}`)
+            .openPopup();
+
+        // Sensores
+        sensores.forEach(sensor => {
+            if (sensor.ubicacion) {
+                const sensorCoord = sensor.ubicacion.split(",").map(parseFloat);
+                const iconColor = sensor.estado === "activo" ? "green" : "gray";
+                const icon = L.divIcon({
+                    className: `sensor-icon`,
+                    html: `<i class="fas fa-microchip" style="color:${iconColor};font-size:20px;"></i>`,
+                    iconSize: [50, 50],
+                    iconAnchor: [10, 10]
+                });
+
+                L.marker(sensorCoord, { icon })
+                    .addTo(mapa)
+                    .bindPopup(`<strong>Sensor ${sensor.id}</strong><br>Tipo: ${sensor.tipo}<br>Estado: ${sensor.estado}`);
+            }
+        });
+    }
+</script>
+{% endblock %}
