@@ -51,14 +51,19 @@ async def vista_clima(
 
     # Obtener el clima actual
     clima_actual = None
+    
+    
     if parcela:
-        ciudad = parcela.ubicacion
-        clima_actual = weather_service.get_current_weather(ciudad)
+        ciudad = parcela.nombre_ubicacion
+        lat, lon = map(float, parcela.ubicacion.split(","))
+        clima_actual = weather_service.get_current_weather_by_coords(lat, lon)
 
     # Obtener el pronóstico
     pronostico = None
     if parcela:
-        pronostico = weather_service.get_forecast(parcela.ubicacion)
+        ciudad = parcela.nombre_ubicacion
+        lat, lon = map(float, parcela.ubicacion.split(","))
+        pronostico = weather_service.get_forecast_by_coords(lat, lon)
 
     return templates.TemplateResponse(
         "clima.html",

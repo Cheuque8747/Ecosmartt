@@ -42,7 +42,6 @@ class Sensor(SensorBase):
     """Modelo completo de sensor con ID y última medición"""
     id: str = Field(..., description="Identificador único del sensor")
     ultima_medicion: Optional[datetime] = Field(None, description="Timestamp de la última medición")
-    
     class Config:
         from_attributes=True
         

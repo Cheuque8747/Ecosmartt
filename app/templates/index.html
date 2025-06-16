@@ -162,74 +162,85 @@
 
 <!-- Modal para añadir sensor -->
 <div class="modal fade" id="addSensorModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Añadir Nuevo Sensor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Añadir Nuevo Sensor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/sensores/add" method="post">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Tipo de Sensor</label>
+              <select name="sensorTipo" class="form-select" required>
+                <option value="temperatura">Temperatura</option>
+                <option value="luz">Luz</option>
+                <option value="ph">pH</option>
+                <option value="conductividad">Conductividad</option>
+                <option value="humedad">Humedad</option>
+              </select>
             </div>
-            <div class="modal-body">
-                <form action="/sensores/add" method="post">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Tipo de Sensor</label>
-                            <select name="sensorTipo" class="form-select" required>
-                                <option value="temperatura">Temperatura</option>
-                                <option value="luz">Luz</option>
-                                <option value="ph">pH</option>
-                                <option value="conductividad">Conductividad</option>
-                                <option value="humedad">Humedad</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ubicación</label>
-                        <input type="text" name="sensorUbicacion" class="form-control" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Parcela</label>
-                            <select name="parcelaId" class="form-select" required>
-                                <option value="">Seleccione una parcela</option>
-                                {% for parcela in parcelas %}
-                                <option value="{{ parcela.id }}">{{ parcela.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Frecuencia (segundos)</label>
-                            <input type="number" name="sensorFrecuencia" class="form-control" min="1" required>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Valor Mínimo</label>
-                            <input type="number" name="sensorMinLectura" class="form-control" step="0.01" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Valor Máximo</label>
-                            <input type="number" name="sensorMaxLectura" class="form-control" step="0.01" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Valor Promedio</label>
-                            <input type="number" name="sensorPromedio" class="form-control" step="0.01" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Ruido</label>
-                            <input type="number" name="sensorRuido" class="form-control" step="0.01" value="0">
-                        </div>
-                    </div>
-                    <div class="text-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-success">Guardar Sensor</button>
-                    </div>
-                </form>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Parcela</label>
+              <select name="parcelaId" id="sensorParcelaSelect" class="form-select" required>
+                <option value="">Seleccione una parcela</option>
+                {% for parcela in parcelas %}
+                <option value="{{ parcela.id }}" data-coords="{{ parcela.ubicacion }}">{{ parcela.nombre }}</option>
+                {% endfor %}
+              </select>
             </div>
-        </div>
+            <div class="col-md-6">
+              <label class="form-label">Ubicación del Sensor</label>
+              <input type="text" id="sensorUbicacion" name="sensorUbicacion" class="form-control" readonly required>
+            </div>
+          </div>
+
+          <!-- Mapa -->
+          <div class="mb-3">
+            <div id="sensorMap" style="height: 300px; border: 1px solid #ccc; border-radius: 8px;"></div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Frecuencia (segundos)</label>
+              <input type="number" name="sensorFrecuencia" class="form-control" min="1" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Valor Mínimo</label>
+              <input type="number" name="sensorMinLectura" class="form-control" step="0.01" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Valor Máximo</label>
+              <input type="number" name="sensorMaxLectura" class="form-control" step="0.01" required>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Valor Promedio</label>
+              <input type="number" name="sensorPromedio" class="form-control" step="0.01" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Ruido</label>
+              <input type="number" name="sensorRuido" class="form-control" step="0.01" value="0">
+            </div>
+          </div>
+
+          <div class="text-end">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success">Guardar Sensor</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- Modal para editar sensor (similar al de añadir) -->
+<!-- Modal para editar sensor -->
 <div class="modal fade" id="editSensorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -239,6 +250,8 @@
             </div>
             <div class="modal-body">
                 <form action="/sensores/edit" method="post">
+                    <input type="hidden" id="parcelaLat" name="parcelaLat" value="">
+                    <input type="hidden" id="parcelaLng" name="parcelaLng" value="">
                     <input type="hidden" id="editSensorId" name="sensorId">
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -256,10 +269,15 @@
                             </select>
                         </div>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Ubicación</label>
-                        <input type="text" id="editSensorUbicacion" name="sensorUbicacion" class="form-control" required>
+                        <input type="text" id="editSensorUbicacion" name="sensorUbicacion" class="form-control" readonly required>
                     </div>
+
+                    <!-- Mapa interactivo -->
+                    <div id="editSensorMap" style="height: 300px;" class="mb-3"></div>
+
                     <div class="row mb-3">
                         <div class="col-md-3">
                             <label class="form-label">Frecuencia (segundos)</label>
@@ -278,6 +296,7 @@
                             <input type="number" id="editSensorPromedio" name="sensorPromedio" class="form-control" step="0.01" placeholder="Opcional">
                         </div>
                     </div>
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Ruido</label>
@@ -291,6 +310,7 @@
                             </select>
                         </div>
                     </div>
+
                     <div class="text-end">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Actualizar Sensor</button>
@@ -301,51 +321,8 @@
     </div>
 </div>
 
-<!-- Modal para visualizar lecturas de un sensor -->
-<div class="modal fade" id="lecturasModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title"><i class="fas fa-chart-line me-2"></i>Lecturas del Sensor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6 id="sensorLecturasInfo"></h6>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <button id="actualizarLectura" class="btn btn-sm btn-primary">
-                            <i class="fas fa-sync-alt me-1"></i>Actualizar Lectura
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="sensorLecturaStatus" class="alert alert-info d-none">
-                    <i class="fas fa-info-circle me-2"></i><span id="sensorLecturaMessage"></span>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h3 id="ultimaLectura">--</h3>
-                                <p class="text-muted" id="unidadLectura"></p>
-                                <small id="tiempoLectura" class="text-muted"></small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <canvas id="sensorChart" height="200"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
+
+
 
 {% endblock %}
 
@@ -424,29 +401,9 @@
         });
     }
     
-    // Función para cargar los datos de un sensor en el formulario de edición
-    function editarSensor(sensorId) {
-        fetch(`/api/sensores/${sensorId}`)
-            .then(response => response.json())
-            .then(sensor => {
-                // Llenamos el formulario con los datos del sensor
-                document.getElementById('editSensorId').value = sensor.id;
-                document.getElementById('displaySensorId').value = sensor.id;
-                document.getElementById('editSensorTipo').value = sensor.tipo;
-                document.getElementById('editSensorUbicacion').value = sensor.ubicacion;
-                document.getElementById('editSensorFrecuencia').value = sensor.frecuencia_lectura;
-                document.getElementById('editSensorMinLectura').value = sensor.min_lectura;
-                document.getElementById('editSensorMaxLectura').value = sensor.max_lectura;
-                document.getElementById('editSensorRuido').value = sensor.ruido;
-                document.getElementById('editSensorEstado').value = sensor.estado;
-                document.getElementById('editSensorPromedio').value = sensor.promedio || '';
-                
-                // Mostramos el modal
-                const modal = new bootstrap.Modal(document.getElementById('editSensorModal'));
-                modal.show();
-            });
-    }
 </script>
+
+
 <script>
         async function obtenerCantidadAlertasNoVistas() {
             try {
@@ -474,4 +431,200 @@
         // Llamar a la función en cada cambio de vista (si usas navegación dinámica)
         document.addEventListener('viewChange', obtenerCantidadAlertasNoVistas);
     </script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  let sensorMap;
+  let sensorMarker = null;  // Marcador del sensor
+  let parcelaMarker = null; // Marcador de la parcela
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const addSensorModal = document.getElementById('addSensorModal');
+
+    addSensorModal.addEventListener('shown.bs.modal', function () {
+      if (!sensorMap) {
+        sensorMap = L.map('sensorMap').setView([0, 0], 2);
+
+        // Cargar tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(sensorMap);
+
+        // Manejo de clic en el mapa para seleccionar ubicación del sensor
+        sensorMap.on('click', function (e) {
+          const { lat, lng } = e.latlng;
+
+          // Eliminar marcador anterior de sensor si existe
+          if (sensorMarker) sensorMap.removeLayer(sensorMarker);
+
+          // Agregar nuevo marcador de sensor (azul)
+          sensorMarker = L.marker([lat, lng], {
+            icon: L.icon({
+              iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+              iconSize: [32, 32],
+              iconAnchor: [16, 32],
+            })
+          }).addTo(sensorMap);
+
+          // Actualizar campo oculto/input de ubicación
+          document.getElementById('sensorUbicacion').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        });
+      }
+
+      // Soluciona problema visual cuando el modal se abre
+      sensorMap.invalidateSize();
+    });
+
+    // Cuando se cambia la parcela seleccionada
+    const parcelaSelect = document.getElementById('sensorParcelaSelect');
+    parcelaSelect.addEventListener('change', function () {
+      const selected = parcelaSelect.selectedOptions[0];
+      const coordsStr = selected.getAttribute('data-coords');
+      if (!coordsStr) return;
+
+      const [lat, lng] = coordsStr.split(',').map(s => parseFloat(s.trim()));
+
+      // Mover el mapa a la nueva parcela
+      sensorMap.setView([lat, lng], 16);
+
+      // Eliminar marcador anterior de parcela si existe
+      if (parcelaMarker) sensorMap.removeLayer(parcelaMarker);
+
+      // Agregar nuevo marcador de parcela (verde)
+      parcelaMarker = L.marker([lat, lng], {
+        icon: L.icon({
+          iconUrl: 'https://cdn-icons-png.flaticon.com/512/69/69524.png',
+          iconSize: [26, 26],
+          iconAnchor: [16, 32],
+        })
+      }).addTo(sensorMap);
+
+      // Actualizar campo de ubicación con la posición de la parcela (por defecto)
+      document.getElementById('sensorUbicacion').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+      // Eliminar marcador de sensor si se cambia de parcela
+      if (sensorMarker) {
+        sensorMap.removeLayer(sensorMarker);
+        sensorMarker = null;
+      }
+    });
+  });
+</script>
+
+<script>
+  // Variables globales para el mapa y marcadores
+  let editSensorMap, editSensorMarker = null, editParcelaMarker = null;
+
+  // Inicializa el mapa de edición (una sola vez)
+  function initEditSensorMap() {
+    if (editSensorMap) return;
+
+    editSensorMap = L.map('editSensorMap').setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(editSensorMap);
+
+    // Al hacer click en el mapa, mueves solo el marcador del sensor (azul)
+    editSensorMap.on('click', e => {
+      const { lat, lng } = e.latlng;
+      if (editSensorMarker) editSensorMap.removeLayer(editSensorMarker);
+      editSensorMarker = L.marker([lat, lng], {
+        icon: L.icon({
+          iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+          iconSize: [32,32],
+          iconAnchor: [16,32]
+        })
+      }).addTo(editSensorMap);
+      document.getElementById('editSensorUbicacion').value = 
+        `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    });
+  }
+
+  // Función que carga datos y muestra el modal
+  function editarSensor(sensorId) {
+    // 1) Asegura que el mapa esté inicializado
+    initEditSensorMap();
+
+    // 2) Obtiene datos del sensor
+    fetch(`/api/sensores/${sensorId}`)
+      .then(r => r.json())
+      .then(sensor => {
+        // 2a) Rellenar inputs del formulario
+        console.log("Respuesta completa del sensor:", sensor);
+        document.getElementById('editSensorId').value        = sensor.id;
+        document.getElementById('displaySensorId').value     = sensor.id;
+        document.getElementById('editSensorTipo').value      = sensor.tipo;
+        document.getElementById('editSensorUbicacion').value = sensor.ubicacion;
+        document.getElementById('editSensorFrecuencia').value= sensor.frecuencia_lectura;
+        document.getElementById('editSensorMinLectura').value= sensor.min_lectura;
+        document.getElementById('editSensorMaxLectura').value= sensor.max_lectura;
+        document.getElementById('editSensorRuido').value     = sensor.ruido;
+        document.getElementById('editSensorEstado').value    = sensor.estado;
+        document.getElementById('editSensorPromedio').value  = sensor.promedio || '';
+
+        // 2b) Extraer coords de parcela y ponerlas en inputs ocultos
+        let latP = 0, lngP = 0;
+        
+        if (sensor.parcela && sensor.parcela.ubicacion) {
+          [latP, lngP] = sensor.parcela.ubicacion.split(',').map(s => parseFloat(s.trim()));
+          document.getElementById('parcelaLat').value = latP;
+          document.getElementById('parcelaLng').value = lngP;
+
+          console.log('Parcela coords:', latP, lngP);
+
+        }
+        console.log('Parcela coords:', latP, lngP);
+        // 3) Abre el modal
+        const modalEl = document.getElementById('editSensorModal');
+        const modal   = new bootstrap.Modal(modalEl);
+        modal.show();
+
+        // 4) Cuando el modal esté visible, colocar marcadores
+        modalEl.addEventListener('shown.bs.modal', () => {
+          // Recalcula tamaño
+          editSensorMap.invalidateSize();
+
+          // Dibuja marcador verde en la parcela
+          if (editParcelaMarker) editSensorMap.removeLayer(editParcelaMarker);
+          editParcelaMarker = L.marker([latP, lngP], {
+            icon: L.icon({
+              iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+              iconSize: [32,32],
+              iconAnchor: [16,32]
+            })
+          }).addTo(editSensorMap);
+
+          // Dibuja marcador azul en la ubicación actual del sensor
+          const [latS, lngS] = sensor.ubicacion
+            .split(',')
+            .map(s => parseFloat(s.trim()));
+          if (editSensorMarker) editSensorMap.removeLayer(editSensorMarker);
+          if (!isNaN(latS) && !isNaN(lngS)) {
+            editSensorMarker = L.marker([latS, lngS], {
+              icon: L.icon({
+                iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                iconSize: [32,32],
+                iconAnchor: [16,32]
+              })
+            }).addTo(editSensorMap);
+            editSensorMap.setView([latS, lngS], 16);
+          } else {
+            // Si no hay ubicación previa, centrar en parcela
+            editSensorMap.setView([latP, lngP], 16);
+          }
+        }, { once: true });
+      })
+      .catch(err => {
+        console.error('Error al cargar sensor:', err);
+        alert('No se pudo cargar la información del sensor.');
+      });
+  }
+</script>
+
+
+
+
+
+
 {% endblock %}

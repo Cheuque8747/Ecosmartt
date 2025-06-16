@@ -25,7 +25,9 @@ def listar_parcelas(request: Request, db: Session = Depends(get_db), current_use
 @router.post("/crear", response_class=RedirectResponse)
 def crear_parcela(
     nombre: str = Form(...),
-    ubicacion: str = Form(...),
+    ubicacion: str = Form(...), # Ubicación de la parcela en coordenadas
+    #nombre de la ubicion
+    nombre_ubicacion: str = Form(...),
     temperatura_min: float = Form(0.0),
     temperatura_max: float = Form(0.0),
     humedad_min: float = Form(0.0),
@@ -43,6 +45,7 @@ def crear_parcela(
     parcela = Parcela(
         nombre=nombre,
         ubicacion=ubicacion,
+        nombre_ubicacion=nombre_ubicacion,
         temperatura_min=temperatura_min,
         temperatura_max=temperatura_max,
         humedad_min=humedad_min,
@@ -71,7 +74,8 @@ def borrar_parcela(parcela_id: int, db: Session = Depends(get_db), current_user:
 def actualizar_parcela(
     parcela_id: int,
     nombre: str = Form(...),
-    ubicacion: str = Form(...),
+    ubicacion: str = Form(...), #   Ubicación de la parcela en coordenadas
+    nombre_ubicacion: str = Form(...), # Nombre de la ubicación
     temperatura_min: float = Form(...),
     temperatura_max: float = Form(...),
     humedad_min: float = Form(...),
@@ -94,6 +98,7 @@ def actualizar_parcela(
     # Actualizar los valores de la parcela
     parcela.nombre = nombre
     parcela.ubicacion = ubicacion
+    parcela.nombre_ubicacion = nombre_ubicacion
     parcela.temperatura_min = temperatura_min
     parcela.temperatura_max = temperatura_max
     parcela.humedad_min = humedad_min
@@ -200,3 +205,64 @@ def actualizar_trabajador(
         user.parcela_id = parcela_id
         db.commit()
     return RedirectResponse(f"/parcelas/trabajadores?parcela_id={parcela_id}", status_code=303)
+
+
+#Para el mapa
+from database import Parcela, Sensor
+from fastapi import APIRouter, Request, Depends, Query
+@router.get("/mapa", response_class=HTMLResponse)
+def vista_parcelas_mapa(
+    request: Request,
+    parcela_id: Optional[int] = Query(None, description="ID de la parcela a visualizar"),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Muestra un mapa con las parcelas y los sensores asociados."""
+    # Obtener las parcelas según el rol del usuario
+    if current_user.role == "agricultor":
+        # Solo mostrar la parcela asignada al agricultor
+        parcela = db.query(Parcela).filter(Parcela.id == current_user.parcela_id).first()
+        if not parcela:
+            raise HTTPException(status_code=404, detail="No tienes una parcela asignada")
+        parcelas = [parcela]
+        parcela_id = current_user.parcela_id 
+    else:
+        # Técnicos y agrónomos pueden ver todas las parcelas
+        parcelas = db.query(Parcela).all()
+
+    # Si se selecciona una parcela, obtener sus sensores
+    parcela_seleccionada = None
+    sensores_data = []
+    if parcela_id:
+        parcela_seleccionada = db.query(Parcela).filter(Parcela.id == parcela_id).first()
+        if not parcela_seleccionada:
+            raise HTTPException(status_code=404, detail="Parcela no encontrada")
+
+        sensores = db.query(Sensor).filter(Sensor.parcela_id == parcela_id).all()
+        sensores_data = [
+            {
+                "id": int(sensor.id),
+                "tipo": str(sensor.tipo),
+                "ubicacion": str(sensor.ubicacion),
+                "estado": str(sensor.estado),
+            }
+            for sensor in sensores
+        ]
+
+    print(f"Parcelas: {parcelas}, Parcela seleccionada: {parcela_seleccionada}, Sensores: {sensores_data}")
+    return templates.TemplateResponse(
+        "parcelas_mapa.html",
+        {
+            "request": request,
+            "parcelas": parcelas,
+            "parcela_id": parcela_id,
+            "sensores1": sensores_data,
+            "user": current_user,
+            "parcela_seleccionada": {
+                "id": parcela_seleccionada.id,
+                "nombre": parcela_seleccionada.nombre,
+                "ubicacion": parcela_seleccionada.ubicacion,
+                } if parcela_seleccionada else None,
+            "role": current_user.role,
+        },
+    )
