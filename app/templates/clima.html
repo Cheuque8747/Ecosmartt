@@ -435,8 +435,8 @@
                 const originalContent = this.innerHTML;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
                 
-                const ciudad = "{{ ciudad }}";
-                if (!ciudad) {
+                const parcelaId = "{{ parcela_id }}";
+                if (!parcelaId) {
                     this.disabled = false;
                     this.innerHTML = originalContent;
                     alert("No se puede guardar el clima porque no se ha seleccionado una parcela.");
@@ -444,7 +444,7 @@
                 }
 
                 try {
-                    const response = await fetch(`/clima/actual?ciudad=${encodeURIComponent(ciudad)}`, {
+                    const response = await fetch(`/clima/actual?parcela_id=${parcelaId}`, {
                         method: 'GET'
                     });
                     

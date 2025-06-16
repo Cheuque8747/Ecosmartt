@@ -83,14 +83,36 @@ async def vista_clima(
 from datetime import datetime, timedelta
 @router.get("/actual")
 def clima_actual(
-    ciudad: str = Query(..., description="Nombre de la ciudad"),
-    db: Session = Depends(get_db)
+    parcela_id: int = Query(None, description="ID de la parcela"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
-    # Obtener el clima actual desde la API
-    data = weather_service.get_current_weather(ciudad)
-    # Guardar siempre el clima actual en la base de datos
-    guardar_clima(db, data, ciudad)
-    return data
+    """Obtiene el clima actual y lo guarda en la base de datos"""
+    if not parcela_id:
+        raise HTTPException(status_code=400, detail="Se requiere el ID de la parcela")
+    
+    # Obtener la parcela
+    parcela = db.query(Parcela).filter(Parcela.id == parcela_id).first()
+    if not parcela:
+        raise HTTPException(status_code=404, detail="Parcela no encontrada")
+    
+    # Verificar permisos
+    if current_user.role == "agricultor" and current_user.parcela_id != parcela_id:
+        raise HTTPException(status_code=403, detail="No tienes permisos para esta parcela")
+    
+    try:
+        # Obtener coordenadas
+        lat, lon = map(float, parcela.ubicacion.split(","))
+        
+        # Obtener el clima actual desde la API usando coordenadas
+        data = weather_service.get_current_weather_by_coords(lat, lon)
+        
+        # Guardar el clima en la base de datos
+        guardar_clima(db, data, parcela.nombre_ubicacion, parcela.id)
+        
+        return {"message": "Clima guardado correctamente", "data": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener/guardar el clima: {str(e)}")
 
 @router.get("/pronostico")
 def clima_pronostico(ciudad: str = Query(..., description="Nombre de la ciudad")):
