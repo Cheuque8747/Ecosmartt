@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block title %}Gráfico de Sensor - EcoSmart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sensor-header {
+        background: linear-gradient(135deg, var(--ecosmart-primary) 0%, var(--ecosmart-secondary) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sensor-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .sensor-info {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+    
+    .sensor-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .sensor-info-item i {
+        font-size: 1.2rem;
+        opacity: 0.8;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 500px;
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-icon.min { color: #17a2b8; }
+    .stat-icon.max { color: #dc3545; }
+    .stat-icon.avg { color: #ffc107; }
+    .stat-icon.total { color: #28a745; }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .filter-bar {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-group-custom {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-periodo {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 2px solid var(--ecosmart-primary);
+        background: white;
+        color: var(--ecosmart-primary);
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-periodo:hover, .btn-periodo.active {
+        background: var(--ecosmart-primary);
+        color: white;
+    }
+    
+    .export-section {
+        text-align: right;
+        margin-top: 1rem;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-activo {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid #28a745;
+    }
+    
+    .status-noActivo {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 1px solid #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header del Sensor -->
+    <div class="sensor-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="sensor-title">
+                    <i class="fas fa-microchip me-2"></i>
+                    Sensor {{ sensor.tipo|capitalize }}
+                </h1>
+                <div class="sensor-info">
+                    <div class="sensor-info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ sensor.ubicacion }}</span>
+                    </div>
+                    <div class="sensor-info-item">
+                        <i class="fas fa-fingerprint"></i>
+                        <span>ID: {{ sensor.id }}</span>
+                    </div>
+                    <div class="sensor-info-item">
+                        <span class="status-badge status-{{ sensor.estado }}">
+                            <i class="fas fa-circle me-1"></i>
+                            {{ sensor.estado|capitalize }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a href="/sensores" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Volver
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtro de período -->
+    <div class="filter-bar">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <label class="form-label fw-bold mb-2">Período de visualización:</label>
+                <div class="btn-group-custom">
+                    <button class="btn-periodo {% if dias == 1 %}active{% endif %}" onclick="cambiarPeriodo(1)">
+                        24 horas
+                    </button>
+                    <button class="btn-periodo {% if dias == 7 %}active{% endif %}" onclick="cambiarPeriodo(7)">
+                        7 días
+                    </button>
+                    <button class="btn-periodo {% if dias == 15 %}active{% endif %}" onclick="cambiarPeriodo(15)">
+                        15 días
+                    </button>
+                    <button class="btn-periodo {% if dias == 30 %}active{% endif %}" onclick="cambiarPeriodo(30)">
+                        30 días
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 export-section">
+                <a href="/api/sensores/{{ sensor.id }}/export" class="btn btn-outline-success">
+                    <i class="fas fa-download me-2"></i>
+                    Exportar CSV
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estadísticas -->
+    {% set datos_parsed = datos|from_json %}
+    {% if datos_parsed.estadisticas %}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fas fa-arrow-down stat-icon min"></i>
+            <div class="stat-value">{{ datos_parsed.estadisticas.min }}</div>
+            <div class="stat-label">Valor Mínimo</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-arrow-up stat-icon max"></i>
+            <div class="stat-value">{{ datos_parsed.estadisticas.max }}</div>
+            <div class="stat-label">Valor Máximo</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-chart-line stat-icon avg"></i>
+            <div class="stat-value">{{ datos_parsed.estadisticas.promedio }}</div>
+            <div class="stat-label">Promedio</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-database stat-icon total"></i>
+            <div class="stat-value">{{ datos_parsed.estadisticas.total_lecturas }}</div>
+            <div class="stat-label">Total de Lecturas</div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Gráfico -->
+    <div class="chart-container">
+        <canvas id="sensorChart"></canvas>
+    </div>
+    
+    <!-- Información adicional -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle me-2 text-info"></i>
+                        Información del Sensor
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Tipo:</strong> {{ sensor.tipo|capitalize }}</li>
+                        <li><strong>Frecuencia:</strong> {{ sensor.frecuencia_lectura }} segundos</li>
+                        <li><strong>Rango:</strong> {{ sensor.min_lectura }} - {{ sensor.max_lectura }}</li>
+                        <li><strong>Promedio esperado:</strong> {{ sensor.promedio }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-link me-2 text-success"></i>
+                        Enlaces Rápidos
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <a href="/lecturas/{{ sensor.id }}" class="btn btn-outline-primary">
+                            <i class="fas fa-table me-2"></i>
+                            Ver todas las lecturas
+                        </a>
+                        <a href="/graficos/comparativo?tipo_sensor={{ sensor.tipo }}" class="btn btn-outline-info">
+                            <i class="fas fa-balance-scale me-2"></i>
+                            Comparar con otros sensores
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Datos para JavaScript -->
+<script type="application/json" id="sensor-data">
+    {{ datos|safe }}
+</script>
+<script>
+    // Obtener datos del elemento HTML
+    const sensorElement = document.getElementById('sensor-data');
+    const datos = JSON.parse(sensorElement.textContent);
+    
+    // Configurar gráfico
+    const ctx = document.getElementById('sensorChart').getContext('2d');
+    
+    // Colores según tipo de sensor
+    const coloresPorTipo = {
+        'temperatura': 'rgb(255, 99, 132)',
+        'humedad': 'rgb(54, 162, 235)',
+        'ph': 'rgb(255, 206, 86)',
+        'luz': 'rgb(255, 159, 64)',
+        'conductividad': 'rgb(153, 102, 255)'
+    };
+    
+    const tipoSensor = datos.sensor.tipo;
+    const colorPrincipal = coloresPorTipo[tipoSensor] || 'rgb(75, 192, 192)';
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: datos.labels,
+            datasets: [{
+                label: `Valores de ${tipoSensor}`,
+                data: datos.valores,
+                borderColor: colorPrincipal,
+                backgroundColor: colorPrincipal.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                pointBackgroundColor: colorPrincipal,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return `Valor: ${context.parsed.y.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Fecha y Hora',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Valor',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        borderDash: [5, 5]
+                    }
+                }
+            }
+        }
+    });
+    
+    // Función para cambiar el período
+    function cambiarPeriodo(dias) {
+        window.location.href = `/graficos/sensor/{{ sensor.id }}?dias=${dias}`;
+    }
+</script>
+{% endblock %}

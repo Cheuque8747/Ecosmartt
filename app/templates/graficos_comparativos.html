@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Gráficos Comparativos - EcoSmart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 500px;
+        margin-bottom: 2rem;
+    }
+    
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .chart-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--ecosmart-dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .chart-title i {
+        color: var(--ecosmart-primary);
+    }
+    
+    .filter-card {
+        background: var(--ecosmart-light);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .sensor-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .sensor-active {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid #28a745;
+    }
+    
+    .sensor-inactive {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 1px solid #6c757d;
+    }
+    
+    .info-box {
+        background: #f8f9fa;
+        border-left: 4px solid var(--ecosmart-primary);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .legend-custom {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-balance-scale me-2 text-success"></i>
+                Gráficos Comparativos
+            </h1>
+            
+            <div class="info-box">
+                <p class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Compara el rendimiento de múltiples sensores del mismo tipo para identificar patrones y anomalías.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if user.role != 'agricultor' %}
+        <!-- Filtros -->
+        <div class="filter-card">
+            <form method="get" action="/graficos/comparativo">
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label for="tipo_sensor" class="form-label fw-bold">
+                            <i class="fas fa-filter me-1"></i>
+                            Tipo de Sensor
+                        </label>
+                        <select class="form-select form-select-lg" id="tipo_sensor" name="tipo_sensor" onchange="this.form.submit()">
+                            <option value="">-- Seleccionar tipo de sensor --</option>
+                            {% for tipo in tipos_disponibles %}
+                                <option value="{{ tipo }}" {% if tipo == tipo_seleccionado %}selected{% endif %}>
+                                    {{ tipo|capitalize }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="/graficos/dashboard" class="btn btn-outline-success">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Volver al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if tipo_seleccionado and datos_comparativo %}
+        <!-- Gráfico Comparativo -->
+        <div class="chart-card">
+            <h3 class="chart-title">
+                <i class="fas fa-chart-area"></i>
+                Comparación de Sensores de {{ tipo_seleccionado|capitalize }}
+            </h3>
+            
+            <!-- Sensores incluidos -->
+            <div class="mb-3">
+                <strong>Sensores incluidos:</strong>
+                <div class="mt-2">
+                    {% set datos = datos_comparativo|from_json %}
+                    {% for nombre, info in datos.items() %}
+                        <span class="sensor-badge {% if info.estado == 'activo' %}sensor-active{% else %}sensor-inactive{% endif %}">
+                            <i class="fas fa-microchip me-1"></i>
+                            {{ nombre }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="comparativoChart"></canvas>
+            </div>
+        </div>
+    {% elif tipo_seleccionado %}
+        <div class="alert alert-warning" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No hay datos disponibles para sensores de tipo {{ tipo_seleccionado }}.
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-chart-area fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Selecciona un tipo de sensor para ver la comparativa</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Datos para JavaScript -->
+<script type="application/json" id="comparativo-data">
+    {{ datos_comparativo|safe }}
+</script>
+<script>
+    // Obtener datos del elemento HTML
+    const comparativoElement = document.getElementById('comparativo-data');
+    const datosComparativo = comparativoElement ? JSON.parse(comparativoElement.textContent) : {};
+    
+    if (datosComparativo && Object.keys(datosComparativo).length > 0) {
+        const ctx = document.getElementById('comparativoChart').getContext('2d');
+        
+        // Colores para cada sensor
+        const colores = [
+            'rgb(255, 99, 132)',
+            'rgb(54, 162, 235)',
+            'rgb(255, 206, 86)',
+            'rgb(75, 192, 192)',
+            'rgb(153, 102, 255)',
+            'rgb(255, 159, 64)',
+            'rgb(199, 199, 199)',
+            'rgb(83, 102, 255)',
+            'rgb(255, 99, 255)',
+            'rgb(99, 255, 132)'
+        ];
+        
+        const datasets = [];
+        let colorIndex = 0;
+        
+        // Usar las etiquetas del primer sensor
+        let labels = [];
+        
+        for (const [nombre, datos] of Object.entries(datosComparativo)) {
+            if (labels.length === 0) {
+                labels = datos.labels;
+            }
+            
+            datasets.push({
+                label: nombre,
+                data: datos.data,
+                borderColor: colores[colorIndex % colores.length],
+                backgroundColor: colores[colorIndex % colores.length].replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            });
+            colorIndex++;
+        }
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Tiempo',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Valor',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            borderDash: [5, 5]
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %} 
