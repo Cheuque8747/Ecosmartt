@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis de Tendencias - EcoSmart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 2rem;
+    }
+    
+    .trend-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .trend-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .trend-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .trend-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--ecosmart-dark);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .trend-title i {
+        color: var(--ecosmart-primary);
+    }
+    
+    .trend-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .trend-up {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .trend-down {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .trend-stable {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .filter-section {
+        background: var(--ecosmart-light);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-box {
+        background: linear-gradient(135deg, var(--ecosmart-primary) 0%, var(--ecosmart-secondary) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .analysis-text {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        border-left: 4px solid var(--ecosmart-primary);
+    }
+    
+    .month-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-chart-area me-2 text-success"></i>
+                Análisis de Tendencias
+            </h1>
+            
+            <p class="lead text-muted">
+                Visualiza las tendencias a largo plazo de tus sensores para identificar patrones estacionales y optimizar tus cultivos.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filter-section">
+        <form method="get" action="/graficos/tendencias">
+            <div class="row align-items-end">
+                <div class="col-md-8">
+                    <label for="parcela_id" class="form-label fw-bold">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        Seleccionar Parcela
+                    </label>
+                    <select class="form-select form-select-lg" id="parcela_id" name="parcela_id" onchange="this.form.submit()">
+                        {% if user.role != "agricultor" %}
+                            <option value="">-- Seleccionar parcela --</option>
+                        {% endif %}
+                        {% for parcela in parcelas %}
+                            <option value="{{ parcela.id }}" {% if parcela.id == parcela_id %}selected{% endif %}>
+                                {{ parcela.nombre }} - {{ parcela.ubicacion }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/graficos/dashboard" class="btn btn-outline-success">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if parcela_id and tendencias %}
+        {% set datos_tendencias = tendencias|from_json %}
+        
+        <!-- Estadísticas Resumen -->
+        {% if datos_tendencias %}
+            <div class="summary-stats">
+                {% for tipo, datos in datos_tendencias.items() %}
+                    {% if datos.promedios %}
+                        <div class="stat-box">
+                            <div class="stat-label">
+                                <i class="fas fa-microchip me-1"></i>
+                                {{ tipo|capitalize }}
+                            </div>
+                            <div class="stat-value">
+                                {{ "%.2f"|format(datos.promedios[-1]) }}
+                            </div>
+                            <div class="stat-label">
+                                Último promedio mensual
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Gráficos de Tendencias -->
+        <div class="row">
+            {% for tipo, datos in datos_tendencias.items() %}
+                <div class="col-md-6">
+                    <div class="trend-card">
+                        <div class="trend-header">
+                            <h3 class="trend-title">
+                                <i class="fas fa-chart-line"></i>
+                                Tendencia de {{ tipo|capitalize }}
+                            </h3>
+                            {% if datos.promedios|length > 1 %}
+                                {% set cambio = ((datos.promedios[-1] - datos.promedios[-2]) / datos.promedios[-2] * 100) %}
+                                <span class="trend-badge {% if cambio > 5 %}trend-up{% elif cambio < -5 %}trend-down{% else %}trend-stable{% endif %}">
+                                    {% if cambio > 0 %}
+                                        <i class="fas fa-arrow-up"></i> +{{ "%.1f"|format(cambio) }}%
+                                    {% elif cambio < 0 %}
+                                        <i class="fas fa-arrow-down"></i> {{ "%.1f"|format(cambio) }}%
+                                    {% else %}
+                                        <i class="fas fa-equals"></i> Estable
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="trend-{{ tipo }}"></canvas>
+                        </div>
+                        
+                        <div class="analysis-text">
+                            <strong>Análisis:</strong>
+                            {% if datos.promedios %}
+                                El promedio mensual ha variado entre 
+                                <strong>{{ "%.2f"|format(datos.minimos|min) }}</strong> y 
+                                <strong>{{ "%.2f"|format(datos.maximos|max) }}</strong>
+                                en los últimos {{ datos.meses|length }} meses.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% elif parcela_id %}
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            No hay suficientes datos históricos para mostrar tendencias. Se necesitan al menos 2 meses de datos.
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-chart-area fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Selecciona una parcela para ver el análisis de tendencias</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Datos para JavaScript -->
+<script type="application/json" id="tendencias-data">
+    {{ tendencias|safe }}
+</script>
+<script>
+    // Obtener datos de tendencias del elemento HTML
+    const tendenciasElement = document.getElementById('tendencias-data');
+    const tendenciasData = JSON.parse(tendenciasElement.textContent);
+    
+    // Colores para los gráficos
+    const tipoColores = {
+        'temperatura': {
+            promedio: 'rgb(255, 99, 132)',
+            minimo: 'rgb(255, 159, 243)',
+            maximo: 'rgb(255, 20, 20)'
+        },
+        'humedad': {
+            promedio: 'rgb(54, 162, 235)',
+            minimo: 'rgb(154, 208, 245)',
+            maximo: 'rgb(0, 100, 200)'
+        },
+        'ph': {
+            promedio: 'rgb(255, 206, 86)',
+            minimo: 'rgb(255, 226, 156)',
+            maximo: 'rgb(255, 180, 0)'
+        },
+        'luz': {
+            promedio: 'rgb(255, 159, 64)',
+            minimo: 'rgb(255, 199, 134)',
+            maximo: 'rgb(255, 119, 0)'
+        },
+        'conductividad': {
+            promedio: 'rgb(153, 102, 255)',
+            minimo: 'rgb(193, 162, 255)',
+            maximo: 'rgb(113, 62, 215)'
+        }
+    };
+    
+    // Crear gráficos para cada tipo de sensor
+    for (const [tipo, datos] of Object.entries(tendenciasData)) {
+        const canvas = document.getElementById(`trend-${tipo}`);
+        if (canvas && datos.meses) {
+            const ctx = canvas.getContext('2d');
+            const colores = tipoColores[tipo] || tipoColores['temperatura'];
+            
+            // Formatear etiquetas de meses
+            const mesesFormateados = datos.meses.map(mes => {
+                const [year, month] = mes.split('-');
+                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                return `${meses[parseInt(month) - 1]} ${year}`;
+            });
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: mesesFormateados,
+                    datasets: [{
+                        label: 'Promedio',
+                        data: datos.promedios,
+                        borderColor: colores.promedio,
+                        backgroundColor: colores.promedio.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }, {
+                        label: 'Mínimo',
+                        data: datos.minimos,
+                        borderColor: colores.minimo,
+                        backgroundColor: colores.minimo.replace('rgb', 'rgba').replace(')', ', 0.05)'),
+                        tension: 0.4,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }, {
+                        label: 'Máximo',
+                        data: datos.maximos,
+                        borderColor: colores.maximo,
+                        backgroundColor: colores.maximo.replace('rgb', 'rgba').replace(')', ', 0.05)'),
+                        tension: 0.4,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                borderDash: [5, 5]
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

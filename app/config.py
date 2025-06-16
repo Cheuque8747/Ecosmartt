@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -17,6 +18,12 @@ os.makedirs(BASE_DIR.parent / "data", exist_ok=True)  # data está en la raíz d
 
 # Configuración de plantillas
 templates = Jinja2Templates(directory=str(APP_DIR / "templates"))
+
+# Agregar filtro from_json
+def from_json(value):
+    return json.loads(value) if value else {}
+
+templates.env.filters['from_json'] = from_json
 
 # Ruta para el archivo de sensores
 SENSORS_FILE = BASE_DIR.parent / "data" / "sensores.json"
