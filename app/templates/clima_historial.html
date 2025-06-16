@@ -1,59 +1,606 @@
 {% extends "base.html" %}
 
-{% block title %}Historial de Clima{% endblock %}
+{% block title %}Historial de Clima - EcoSmart{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Header del historial */
+    .history-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .history-header::after {
+        content: '';
+        position: absolute;
+        bottom: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float-reverse 25s infinite ease-in-out;
+    }
+    
+    @keyframes float-reverse {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(30px, 30px) rotate(-180deg); }
+    }
+    
+    /* Selector de parcelas */
+    .parcela-selector {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .parcela-selector .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .parcela-selector .form-select:focus {
+        border-color: var(--ecosmart-primary);
+        box-shadow: 0 0 0 0.2rem rgba(44, 140, 99, 0.25);
+    }
+    
+    /* Estadísticas resumen */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    
+    .stat-icon.temp-avg { color: #e74c3c; }
+    .stat-icon.humidity-avg { color: #3498db; }
+    .stat-icon.wind-avg { color: #1abc9c; }
+    .stat-icon.total { color: #9b59b6; }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Tabla mejorada */
+    .history-table-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow-x: auto;
+    }
+    
+    .history-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .history-table thead {
+        background: #f8f9fa;
+    }
+    
+    .history-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #2c3e50;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .history-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .history-table tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .history-table td {
+        padding: 1rem;
+        color: #495057;
+    }
+    
+    .weather-icon-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .weather-icon-small {
+        width: 40px;
+        height: 40px;
+    }
+    
+    /* Valores especiales en tabla */
+    .temp-value {
+        font-weight: 600;
+        color: #e74c3c;
+    }
+    
+    .humidity-value {
+        font-weight: 600;
+        color: #3498db;
+    }
+    
+    .wind-value {
+        font-weight: 600;
+        color: #1abc9c;
+    }
+    
+    .pressure-value {
+        font-weight: 600;
+        color: #9b59b6;
+    }
+    
+    /* Filtros y controles */
+    .controls-container {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .btn-export {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-export:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    /* Gráfico de tendencias */
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        height: 400px;
+    }
+    
+    /* Alert mejorado */
+    .alert-history {
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .alert-history i {
+        font-size: 2rem;
+    }
+    
+    /* Animaciones */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .history-animate {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .history-table {
+            font-size: 0.875rem;
+        }
+        
+        .history-table th,
+        .history-table td {
+            padding: 0.5rem;
+        }
+        
+        .controls-container {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2><i class="fas fa-history me-2"></i>Historial de Clima</h2>
+    <!-- Header -->
+    <div class="history-header history-animate">
+        <h1 class="mb-0">
+            <i class="fas fa-history me-3"></i>
+            Historial Climático
+        </h1>
+        <p class="mb-0 mt-2 opacity-90">Registro histórico de condiciones meteorológicas</p>
+    </div>
 
     {% if user and user.role != 'agricultor' %}
-    <!-- Selector de parcelas para técnicos y agrónomos -->
-    <form method="get" action="/clima/historial" class="row g-3 mb-4">
-        <div class="col-md-6">
-            <select name="parcela_id" class="form-select" onchange="this.form.submit()">
-                <option value="">Seleccione una parcela</option>
-                {% for p in parcelas %}
-                <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
-                    {{ p.nombre }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-    </form>
+    <!-- Selector de parcelas -->
+    <div class="parcela-selector history-animate">
+        <form method="get" action="/clima/historial">
+            <div class="row align-items-end">
+                <div class="col-md-8">
+                    <label for="parcela_id" class="form-label fw-bold mb-2">
+                        <i class="fas fa-map-marker-alt me-2 text-success"></i>
+                        Filtrar por Parcela
+                    </label>
+                    <select name="parcela_id" id="parcela_id" class="form-select form-select-lg" onchange="this.form.submit()">
+                        <option value="">-- Todas las parcelas --</option>
+                        {% for p in parcelas %}
+                        <option value="{{ p.id }}" {% if parcela_id and p.id == parcela_id %}selected{% endif %}>
+                            {{ p.nombre }} - {{ p.ubicacion }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
     {% endif %}
 
     {% if historial %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Fecha y Hora</th>
-                <th>Ubicación</th>
-                <th>Temp (°C)</th>
-                <th>Humedad (%)</th>
-                <th>Presión (hPa)</th>
-                <th>Viento (m/s)</th>
-                <th>Descripción</th>
-                <th>Icono</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for c in historial %}
-            <tr>
-                <td>{{ c.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
-                <td>{{ c.ubicacion }}</td>
-                <td>{{ c.temperatura }}</td>
-                <td>{{ c.humedad }}</td>
-                <td>{{ c.presion }}</td>
-                <td>{{ c.viento }}</td>
-                <td>{{ c.descripcion }}</td>
-                <td><img src="https://openweathermap.org/img/wn/{{ c.icono }}.png" alt="icono"></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Estadísticas resumen -->
+    <div class="stats-container history-animate">
+        <div class="stat-card">
+            <i class="fas fa-thermometer-half stat-icon temp-avg"></i>
+            <div class="stat-value">
+                {{ (historial|map(attribute='temperatura')|sum / historial|length)|round(1) }}°C
+            </div>
+            <div class="stat-label">Temperatura Promedio</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-tint stat-icon humidity-avg"></i>
+            <div class="stat-value">
+                {{ (historial|map(attribute='humedad')|sum / historial|length)|round(0)|int }}%
+            </div>
+            <div class="stat-label">Humedad Promedio</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-wind stat-icon wind-avg"></i>
+            <div class="stat-value">
+                {{ (historial|map(attribute='viento')|sum / historial|length)|round(1) }} m/s
+            </div>
+            <div class="stat-label">Viento Promedio</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-database stat-icon total"></i>
+            <div class="stat-value">
+                {{ historial|length }}
+            </div>
+            <div class="stat-label">Registros Totales</div>
+        </div>
+    </div>
+
+    <!-- Controles -->
+    <div class="controls-container history-animate">
+        <div>
+            <h3 class="mb-0">Registros Históricos</h3>
+            <p class="text-muted mb-0">{{ historial|length }} registros encontrados</p>
+        </div>
+        <button class="btn btn-export" onclick="exportarDatos()">
+            <i class="fas fa-download me-2"></i>
+            Exportar CSV
+        </button>
+    </div>
+
+    <!-- Gráfico de tendencias -->
+    <div class="chart-container history-animate">
+        <canvas id="climateChart"></canvas>
+    </div>
+
+    <!-- Tabla de historial -->
+    <div class="history-table-container history-animate">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-calendar me-2"></i>Fecha y Hora</th>
+                    <th><i class="fas fa-map-marker-alt me-2"></i>Ubicación</th>
+                    <th><i class="fas fa-thermometer-half me-2"></i>Temp (°C)</th>
+                    <th><i class="fas fa-tint me-2"></i>Humedad (%)</th>
+                    <th><i class="fas fa-tachometer-alt me-2"></i>Presión (hPa)</th>
+                    <th><i class="fas fa-wind me-2"></i>Viento (m/s)</th>
+                    <th><i class="fas fa-cloud me-2"></i>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in historial %}
+                <tr>
+                    <td>
+                        <i class="fas fa-clock text-muted me-1"></i>
+                        {{ c.timestamp.strftime('%d/%m/%Y %H:%M') }}
+                    </td>
+                    <td>
+                        <i class="fas fa-location-dot text-success me-1"></i>
+                        {{ c.ubicacion }}
+                    </td>
+                    <td class="temp-value">{{ c.temperatura }}°</td>
+                    <td class="humidity-value">{{ c.humedad }}%</td>
+                    <td class="pressure-value">{{ c.presion }}</td>
+                    <td class="wind-value">{{ c.viento }}</td>
+                    <td>
+                        <div class="weather-icon-cell">
+                            <img src="https://openweathermap.org/img/wn/{{ c.icono }}.png" 
+                                 alt="icono" 
+                                 class="weather-icon-small">
+                            <span>{{ c.descripcion }}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i>No hay datos de clima para esta parcela.</div>
+    <div class="alert alert-history alert-info history-animate">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>Sin datos históricos</strong><br>
+            No hay registros climáticos para la parcela seleccionada. Los datos se guardarán automáticamente cuando se consulte el clima.
+        </div>
+    </div>
     {% endif %}
 </div>
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% if historial %}
+<!-- Datos para JavaScript -->
+<script type="application/json" id="historial-data">
+{
+    "labels": [
+        {% for c in historial[-30:] %}
+        "{{ c.timestamp.strftime('%d/%m %H:%M') }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ],
+    "temperaturas": [
+        {% for c in historial[-30:] %}
+        {{ c.temperatura }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ],
+    "humedades": [
+        {% for c in historial[-30:] %}
+        {{ c.humedad }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ],
+    "historial": [
+        {% for c in historial %}
+        {
+            "timestamp": "{{ c.timestamp.strftime('%d/%m/%Y %H:%M') }}",
+            "ubicacion": "{{ c.ubicacion }}",
+            "temperatura": {{ c.temperatura }},
+            "humedad": {{ c.humedad }},
+            "presion": {{ c.presion }},
+            "viento": {{ c.viento }},
+            "descripcion": "{{ c.descripcion }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
+
+<script>
+    // Obtener datos del elemento HTML
+    const historialElement = document.getElementById('historial-data');
+    const historialData = JSON.parse(historialElement.textContent);
+    
+    // Configurar gráfico
+    const ctx = document.getElementById('climateChart').getContext('2d');
+    const climateChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: historialData.labels,
+            datasets: [{
+                label: 'Temperatura (°C)',
+                data: historialData.temperaturas,
+                borderColor: '#e74c3c',
+                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                yAxisID: 'y',
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }, {
+                label: 'Humedad (%)',
+                data: historialData.humedades,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                yAxisID: 'y1',
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Tendencias Climáticas (Últimos 30 registros)',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    },
+                    padding: 20
+                },
+                legend: {
+                    position: 'top',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Temperatura (°C)',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        borderDash: [5, 5]
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Humedad (%)',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+    
+    // Función para exportar datos
+    window.exportarDatos = function() {
+        // Crear CSV
+        let csv = 'Fecha y Hora,Ubicación,Temperatura (°C),Humedad (%),Presión (hPa),Viento (m/s),Descripción\n';
+        
+        historialData.historial.forEach(function(registro) {
+            csv += `"${registro.timestamp}","${registro.ubicacion}",${registro.temperatura},${registro.humedad},${registro.presion},${registro.viento},"${registro.descripcion}"\n`;
+        });
+        
+        // Descargar archivo
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `historial_clima_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+{% else %}
+<script>
+    // Función placeholder para cuando no hay datos
+    window.exportarDatos = function() {
+        alert('No hay datos para exportar');
+    }
+</script>
+{% endif %}
+
+<script>
+    // Animación de entrada escalonada para las filas de la tabla
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('.history-table tbody tr');
+        rows.forEach((row, index) => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, index * 50);
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

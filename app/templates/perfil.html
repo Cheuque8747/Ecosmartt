@@ -2,101 +2,565 @@
 
 {% block title %}Mi Perfil - EcoSmart{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Header del perfil */
+    .profile-header {
+        background: linear-gradient(135deg, var(--ecosmart-primary) 0%, var(--ecosmart-secondary) 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -100px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 15s infinite ease-in-out;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-50px, -50px) scale(1.1); }
+    }
+    
+    /* Avatar mejorado */
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        background: white;
+        color: var(--ecosmart-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        font-weight: 700;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        position: relative;
+        z-index: 1;
+        transition: transform 0.3s ease;
+    }
+    
+    .profile-avatar:hover {
+        transform: scale(1.05);
+    }
+    
+    .profile-avatar.small {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        margin: 0;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
+    
+    /* Cards mejoradas */
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .profile-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+    
+    .card-header-custom {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .card-header-custom h5 {
+        margin: 0;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .card-header-custom i {
+        font-size: 1.5rem;
+        color: var(--ecosmart-primary);
+    }
+    
+    /* Info items */
+    .info-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-item:hover {
+        background: #f8f9fa;
+        margin: 0 -1.5rem;
+        padding: 1rem 1.5rem;
+    }
+    
+    .info-item i {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ecosmart-light);
+        color: var(--ecosmart-primary);
+        border-radius: 10px;
+        margin-right: 1rem;
+    }
+    
+    .info-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+    
+    /* Estado badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        gap: 0.5rem;
+    }
+    
+    .status-badge.active {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .status-badge.inactive {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .status-badge i {
+        font-size: 0.5rem;
+    }
+    
+    /* Formulario mejorado */
+    .form-section {
+        margin-bottom: 2rem;
+    }
+    
+    .form-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-section-title i {
+        color: var(--ecosmart-primary);
+    }
+    
+    .form-control-custom {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control-custom:focus {
+        border-color: var(--ecosmart-primary);
+        box-shadow: 0 0 0 0.2rem rgba(44, 140, 99, 0.1);
+    }
+    
+    .input-group-custom {
+        position: relative;
+    }
+    
+    .input-group-custom .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 10;
+    }
+    
+    .input-group-custom .form-control-custom {
+        padding-left: 3rem;
+    }
+    
+    /* Botones mejorados */
+    .btn-save {
+        background: linear-gradient(135deg, var(--ecosmart-primary) 0%, var(--ecosmart-secondary) 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(44, 140, 99, 0.3);
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(44, 140, 99, 0.4);
+        color: white;
+    }
+    
+    .btn-cancel {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background: #e9ecef;
+        color: #495057;
+    }
+    
+    /* Alertas mejoradas */
+    .alert-custom {
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .alert-custom i {
+        font-size: 1.5rem;
+    }
+    
+    /* Stats cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .profile-header {
+            padding: 2rem 0;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            font-size: 3rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<!-- Header del perfil -->
+<div class="profile-header">
+    <div class="container">
+        <div class="text-center">
+            <div class="profile-avatar">
+                {% if user.username %}{{ user.username[0]|upper }}{% else %}U{% endif %}
+            </div>
+            <h1 class="mb-2">{{ user.username }}</h1>
+            <p class="mb-3 opacity-90">{{ user.email }}</p>
+            <div class="status-badge {% if user.is_active %}active{% else %}inactive{% endif %}">
+                <i class="fas fa-circle"></i>
+                {% if user.is_active %}Cuenta Activa{% else %}Cuenta Inactiva{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Alertas -->
+    {% if success %}
+    <div class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i>
+        <div>
+            <strong>¡Éxito!</strong><br>
+            {{ success }}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    
+    {% if error %}
+    <div class="alert alert-danger alert-custom alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Error</strong><br>
+            {{ error }}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Estadísticas rápidas -->
+    {% if user.role == "tecnico" %}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fas fa-microchip stat-icon"></i>
+            <div class="stat-value">12</div>
+            <div class="stat-label">Sensores Gestionados</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-map stat-icon"></i>
+            <div class="stat-value">5</div>
+            <div class="stat-label">Parcelas Supervisadas</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-bell stat-icon"></i>
+            <div class="stat-value">3</div>
+            <div class="stat-label">Alertas Pendientes</div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-user-circle me-2"></i>Información de Perfil</h5>
+        <!-- Información del perfil -->
+        <div class="col-lg-4">
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-user-circle"></i>
+                    <h5>Información de Cuenta</h5>
                 </div>
                 <div class="card-body">
-                    {% if success %}
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="fas fa-check-circle me-2"></i>{{ success }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    {% endif %}
-                    
-                    {% if error %}
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="text-center mb-4">
-                        <div class="avatar bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">
-                            {{ user.username[0].upper() }}
+                    <div class="info-item">
+                        <i class="fas fa-user"></i>
+                        <div>
+                            <div class="info-label">Nombre de usuario</div>
+                            <div class="info-value">{{ user.username }}</div>
                         </div>
-                        <h4>{{ user.username }}</h4>
-                        <p class="text-muted">{{ user.role|title }}</p>
                     </div>
-                    
-                    <div class="mb-3">
-                        <h6 class="text-muted mb-2">Información de Cuenta</h6>
-                        <p><i class="fas fa-envelope me-2"></i> {{ user.email }}</p>
-                        <p><i class="fas fa-calendar me-2"></i> Miembro desde: {{ user.created_at.strftime('%d/%m/%Y') }}</p>
-                        <p><i class="fas fa-user-tag me-2"></i> Rol: {{ user.role|title }}</p>
-                        <p>
-                            <div class="avatar bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">
-    {% if user.username %}{{ user.username[0]|upper }}{% else %}U{% endif %}
-                            </div>
-                            Estado: {% if user.is_active %}Activo{% else %}Inactivo{% endif %}
-                        </p>
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <div class="info-label">Correo electrónico</div>
+                            <div class="info-value">{{ user.email }}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-user-tag"></i>
+                        <div>
+                            <div class="info-label">Rol en el sistema</div>
+                            <div class="info-value">{{ user.role|title }}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div>
+                            <div class="info-label">Miembro desde</div>
+                            <div class="info-value">{{ user.created_at.strftime('%d de %B de %Y') }}</div>
+                        </div>
+                    </div>
+                    {% if user.parcela_id %}
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <div class="info-label">Parcela asignada</div>
+                            <div class="info-value">Parcela #{{ user.parcela_id }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Acciones rápidas -->
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-bolt"></i>
+                    <h5>Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/sensores" class="btn btn-outline-primary">
+                            <i class="fas fa-microchip me-2"></i>
+                            Ver Sensores
+                        </a>
+                        <a href="/graficos/dashboard" class="btn btn-outline-success">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Ver Gráficos
+                        </a>
+                        <a href="/alertas/historial" class="btn btn-outline-warning">
+                            <i class="fas fa-bell me-2"></i>
+                            Ver Alertas
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-edit me-2"></i>Editar Perfil</h5>
+        <!-- Formulario de edición -->
+        <div class="col-lg-8">
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-edit"></i>
+                    <h5>Editar Perfil</h5>
                 </div>
                 <div class="card-body">
                     <form action="/auth/perfil/actualizar" method="post">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Nombre de usuario</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                        <!-- Información básica -->
+                        <div class="form-section">
+                            <h6 class="form-section-title">
+                                <i class="fas fa-info-circle"></i>
+                                Información Básica
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Nombre de usuario</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input type="text" 
+                                           class="form-control form-control-custom" 
+                                           id="username" 
+                                           name="username" 
+                                           value="{{ user.username }}" 
+                                           required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Correo electrónico</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    <input type="email" 
+                                           class="form-control form-control-custom" 
+                                           id="email" 
+                                           name="email" 
+                                           value="{{ user.email }}" 
+                                           required>
+                                </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Correo electrónico</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                        
+                        <!-- Cambio de contraseña -->
+                        <div class="form-section">
+                            <h6 class="form-section-title">
+                                <i class="fas fa-lock"></i>
+                                Cambiar Contraseña
+                            </h6>
+                            <p class="text-muted mb-3">Deja estos campos vacíos si no deseas cambiar tu contraseña</p>
+                            
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Contraseña actual</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-key input-icon"></i>
+                                    <input type="password" 
+                                           class="form-control form-control-custom" 
+                                           id="current_password" 
+                                           name="current_password"
+                                           placeholder="Ingresa tu contraseña actual">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="new_password" class="form-label">Nueva contraseña</label>
+                                    <div class="input-group-custom">
+                                        <i class="fas fa-lock input-icon"></i>
+                                        <input type="password" 
+                                               class="form-control form-control-custom" 
+                                               id="new_password" 
+                                               name="new_password"
+                                               placeholder="Mínimo 8 caracteres">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="confirm_password" class="form-label">Confirmar contraseña</label>
+                                    <div class="input-group-custom">
+                                        <i class="fas fa-lock input-icon"></i>
+                                        <input type="password" 
+                                               class="form-control form-control-custom" 
+                                               id="confirm_password" 
+                                               name="confirm_password"
+                                               placeholder="Repite la nueva contraseña">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info d-flex align-items-center" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                La contraseña debe tener al menos 8 caracteres
                             </div>
                         </div>
-                        <hr class="my-4">
-                        <h6 class="mb-3">Cambiar contraseña (dejar en blanco para mantener la actual)</h6>
-                        <div class="mb-3">
-                            <label for="current_password" class="form-label">Contraseña actual</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" class="form-control" id="current_password" name="current_password">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="new_password" class="form-label">Nueva contraseña</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-key"></i></span>
-                                <input type="password" class="form-control" id="new_password" name="new_password" >
-                            </div>
-                            <small class="text-muted">Mínimo 8 caracteres.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Confirmar nueva contraseña</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-key"></i></span>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" >
-                            </div>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Guardar cambios
+                        
+                        <!-- Botones de acción -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-cancel" onclick="location.reload()">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-save">
+                                <i class="fas fa-save me-2"></i>
+                                Guardar Cambios
                             </button>
                         </div>
                     </form>
@@ -105,4 +569,35 @@
         </div>
     </div>
 </div>
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Validación de contraseñas
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = this.value;
+        
+        if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+            this.setCustomValidity('Las contraseñas no coinciden');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Animación de entrada para las cards
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.profile-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

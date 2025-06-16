@@ -9,7 +9,7 @@ import os
 load_dotenv()  # Esto carga el archivo .env
 
 # Módulos actualizados
-from routers import sensores, lecturas, auth, ia, clima, parcelas, chat_ia, umbrales, alertas
+from routers import sensores, lecturas, auth, ia, clima, parcelas, chat_ia, umbrales, alertas , graficos
 from routers.auth import get_current_active_user
 
 from config import templates, sensor_info
@@ -45,7 +45,7 @@ app.include_router(parcelas.router)
 app.include_router(chat_ia.router)  # Router para chat IA
 app.include_router(umbrales.router) # Router para gestión de umbrales
 app.include_router(alertas.router)  # Router para alertas
-
+app.include_router(graficos.router)  # Router para gráficos
 from database import Parcela
 from fastapi import Query
 from fastapi.exceptions import HTTPException
