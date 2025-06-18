@@ -17,11 +17,16 @@
         </div>
     </form>
     <!-- Botón para abrir modal de creación -->
-    <div class="mb-3">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
-            Agregar Trabajador
-        </button>
-    </div>
+
+
+        {% if role == "agricultor" %}
+        <div class="mb-3">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
+                Agregar Trabajador
+            </button>
+        </div>
+        {% endif %}
+
     {% endif %}
 
     <!-- Modal Crear Trabajador -->
