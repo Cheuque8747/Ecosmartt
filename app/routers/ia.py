@@ -282,9 +282,13 @@ async def obtener_clima_actual(
     if not parcela:
         raise HTTPException(status_code=404, detail="Parcela no encontrada.")
 
-    ciudad = parcela.ubicacion
-    clima_actual = weather_service.get_current_weather(ciudad)
-    pronostico = weather_service.get_forecast(ciudad)
+    #coordenadas = parcela.ubicacion
+
+    lat, lon = map(float, parcela.ubicacion.split(",")) 
+
+    print(f"🔍 Obteniendo clima para parcela {parcela_id} en coordenadas: {lat}, {lon}")
+    clima_actual = weather_service.get_current_weather_by_coords(lat , lon)
+    pronostico = weather_service.get_forecast_by_coords(lat , lon)
 
     return {
         "clima_actual": clima_actual,

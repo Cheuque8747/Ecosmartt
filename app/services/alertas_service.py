@@ -49,13 +49,16 @@ class AlertaService:
         if not parcela:
             return
 
-        # Comprobar umbrales según el tipo de sensor
+        # Comprobar umbrales según el tipo de sensor y si la alerta está activa
         if sensor.tipo == "temperatura":
-            if lectura.valor < parcela.temperatura_min or lectura.valor > parcela.temperatura_max:
-                AlertaService.generar_alerta(db, sensor, lectura, "temperatura")
+            if getattr(parcela, "temperatura_active", True):  # Por compatibilidad, True si no existe
+                if lectura.valor < parcela.temperatura_min or lectura.valor > parcela.temperatura_max:
+                    AlertaService.generar_alerta(db, sensor, lectura, "temperatura")
         elif sensor.tipo == "humedad":
-            if lectura.valor < parcela.humedad_min or lectura.valor > parcela.humedad_max:
-                AlertaService.generar_alerta(db, sensor, lectura, "humedad")
+            if getattr(parcela, "humedad_active", True):
+                if lectura.valor < parcela.humedad_min or lectura.valor > parcela.humedad_max:
+                    AlertaService.generar_alerta(db, sensor, lectura, "humedad")
         elif sensor.tipo == "ph":
-            if lectura.valor < parcela.ph_min or lectura.valor > parcela.ph_max:
-                AlertaService.generar_alerta(db, sensor, lectura, "ph")
+            if getattr(parcela, "ph_active", True):
+                if lectura.valor < parcela.ph_min or lectura.valor > parcela.ph_max:
+                    AlertaService.generar_alerta(db, sensor, lectura, "ph")
