@@ -34,53 +34,59 @@ El proyecto surge como respuesta a los desafíos actuales de la agricultura:
 ## 📁 Estructura del Proyecto
 
 ```plaintext
-ecosmart/
+Ecosmartt/
 ├── app/
 │   ├── __init__.py
 │   ├── main.py                  # Punto de inicio de FastAPI
 │   ├── config.py                # Configuración general y rutas
-│
-│   ├── models/                  # Modelos de datos (SQLAlchemy)
-│   │   ├── __init__.py
-│   │   ├── sensor.py            # Modelo de sensor
-│   │   └── user.py              # Modelo de usuario
-│
+│   ├── database.py              # Modelos y conexión a la base de datos
 │   ├── routers/                 # Rutas y endpoints principales
 │   │   ├── __init__.py
-│   │   ├── auth.py              # Autenticación y usuarios
-│   │   ├── lecturas.py          # Lecturas de sensores
-│   │   └── sensores.py          # Gestión de sensores
-│
+│   │   ├── auth.py
+│   │   ├── ia.py
+│   │   ├── lecturas.py
+│   │   ├── parcelas.py
+│   │   ├── sensores.py
+│   │   ├── clima.py
+│   │   ├── chat_ia.py
+│   │   ├── umbrales.py
+│   │   ├── alertas.py
+│   │   └── graficos.py
 │   ├── services/                # Lógica de negocio y servicios externos
 │   │   ├── __init__.py
-│   │   ├── auth_service.py      # Servicio de autenticación
-│   │   ├── lecturas_service.py  # Servicio de lecturas
-│   │   └── sensor_service.py    # Servicio de sensores
-│
-│   ├── static/                  # Archivos estáticos (CSS, JS, imágenes)
-│   │   ├── css/
-│   │   ├── imagenes/
-│   │   └── js/
-│
+│   │   ├── auth_service.py
+│   │   ├── deepseek_service.py
+│   │   ├── openweather_service.py
+│   │   └── sensor_service.py
+│   ├── models/                  # Modelos Pydantic y de dominio
+│   │   ├── __init__.py
+│   │   ├── sensor.py
+│   │   ├── chat_ia.py
+│   │   └── chat_ia.py
 │   ├── templates/               # Plantillas HTML (Jinja2)
 │   │   ├── base.html
 │   │   ├── index.html
 │   │   ├── lecturas.html
-│   │   └── login.html
-│
+│   │   ├── login.html
+│   │   ├── parcelas.html
+│   │   ├── parcelas_mapa.html
+│   │   ├── perfil.html
+│   │   ├── clima.html
+│   │   ├── graficos_dashboard.html
+│   │   ├── graficos_tendencias.html
+│   │   ├── inicio.html
+│   │   └── trabajadores_parcela.html
+│   └── ...
 ├── data/                        # Archivos de base de datos y datos persistentes
 │   └── ecosmart.db
-│
-├── env/                         # Entorno virtual (no se sube a git)
-│
 ├── requirements.txt             # Dependencias del proyecto
-├── README.md                    # Explicación y documentación
+├── README.md                    # Documentación principal
+└── .env                         # Variables de entorno (no subir a git)
 ```
-
-- La integración con APIs externas como Deepseek y OpenWeatherMap se realiza desde los servicios en `app/services/`.
 - La base de datos SQLite se encuentra en la carpeta `data/`.
-- Los archivos estáticos y plantillas para el frontend están en `app/static/` y `app/templates/` respectivamente.
-- El entorno virtual debe estar en la carpeta `env/` y está excluido en `.gitignore`.
+- Las vistas o plantillas para el frontend están en `app/templates/`.
+- Los servicios externos y lógica de negocio están en `app/services/`.
+- Los endpoints y rutas principales están en `app/routers/`.
 
 ## ⚙ Instalación y Configuración
 
@@ -93,24 +99,31 @@ ecosmart/
 
 1. *Clonar el repositorio*
    bash
-   git clone https://github.com/cheuque1/ecosmart.git
-   cd ecosmart
+   git clone https://github.com/Cheuque8747/Ecosmartt.git
+   cd ecosmartt
    
 
 2. *Crear y activar entorno virtual*
-   bash
+   
    # En Windows
-   python -m venv venv
-   venv\Scripts\activate
+   python -m venv env
+   env\Scripts\activate
 
    # En MacOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
+   python3 -m venv env
+   source env/bin/activate
+> **Nota:**  
+> Si al intentar activar el entorno virtual en Windows (`env\Scripts\activate`) recibes un error relacionado con permisos de ejecución de scripts, puedes solucionarlo ejecutando el siguiente comando en PowerShell antes de activar el entorno:
+>
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+> ```
+> Esto otorga permisos temporales solo para la sesión actual y permite activar el entorno virtual sin problemas de seguridad.
    
 
 3. *Instalar dependencias*
-   bash
-   pip install -r requirements.txt
+   
+     pip install -r requirements.txt
    
 
 4. *Configurar variables de entorno*
@@ -121,30 +134,98 @@ ecosmart/
    OLLAMA_API_URL=url_del_servicio
    
 
+
 5. *Iniciar la aplicación*
-   bash
-   python run.py
-   
-   La aplicación estará disponible en http://localhost:8000
+
+   Para iniciar la aplicación (teniendo el entorno virtual activo), primero debes ubicarte dentro de la carpeta `app` desde la terminal. Luego ejecuta el siguiente comando:
+
+   uvicorn main:app --reload
 
 ## 🖥 Uso
 
-### Acceso al Panel de Control
-1. Acceder a http://localhost:8000 desde cualquier navegador
-2. Iniciar sesión con las credenciales proporcionadas (usuario: admin, contraseña: ecosmart)
+### Acceso a la aplicación
+1. Acceder a http://127.0.0.1:8000/auth/login desde cualquier navegador
+2. Iniciar sesión con las credenciales (usuario y contraseña) de un usuario de la base de datos
+
+> **Nota:**  Si al iniciar la aplicación no tiene un base de datos, se crea una con un usuario genérico con rol de técnico con las credenciales
+>
+> usuario: "admin" y contraseña: "admin123"
 
 ### Funcionalidades principales
 - *Dashboard*: Visualización general de todos los sensores y métricas
-- *Monitoreo de Parcelas*: Datos en tiempo real de cada zona de cultivo
+- *Mapa de Parcelas*: Visualización geográfica de las parcelas con sus sensores
 - *Asistente IA*: Consultas sobre estado de cultivos, enfermedades, optimización
 - *Pronóstico Meteorológico*: Datos climáticos para planificación agrícola
 - *Alertas*: Configuración de umbrales para notificaciones automáticas
 
 ## 👥 Usuarios del Sistema
 
-- *Agricultores*: Monitoreo de cultivos, recepción de alertas y recomendaciones
-- *Agrónomos*: Análisis detallado de datos, consultas específicas al asistente IA
-- *Técnicos*: Configuración del sistema, ajuste de parámetros, mantenimiento
+- *Agricultores*: Monitoreo de sensores, recepción de alertas y acceso limitado a datos de su parcela 
+- *Agrónomos*: Análisis detallado de datos y acceso a datos de todas las parcelas
+- *Técnicos*: Configuración del sistema, ajuste de parámetros, creación de parcelas y sensores, control total
+
+
+
+## 📖 Guía de Uso por Rol
+
+### 👨‍🌾 Agricultor
+
+- **Monitoreo de Sensores y Clima:**  
+  Accede a las opciones del navbar, tales como, sensores, clima actual, entre otros:  
+  - Visualiza datos en tiempo real de temperatura, humedad, pH y luz solar.
+  - Recibe alertas automáticas si algún valor supera los umbrales definidos.
+
+- **Consultas al Asistente IA:**  
+  Usa la sección "Asistente IA" para hacer preguntas sobre el estado de tus cultivos, diagnóstico de enfermedades o recomendaciones de riego.  
+  - Elige una plantilla de consulta rápida (por ejemplo, "Diagnóstico de Enfermedades").
+  - El sistema usará automáticamente los datos de tu parcela.
+
+- **Historial y Alertas:**  
+  Consulta el historial de alertas desde la opcion de alertas en el navabr.
+
+---
+
+### 👨‍🔬 Agrónomo
+
+- **Visualización de Parcelas:**  
+  Accede al dashboard para ver todas las parcelas bajo tu supervisión.  
+  - Filtra por parcela usando el selector en la parte superior.
+  - Analiza tendencias y comparativas entre parcelas.
+
+- **Consultas al Asistente IA:**  
+  Selecciona la parcela de interés en la barra lateral del asistente IA antes de usar una plantilla.  
+  - Puedes consultar sobre riego, fertilización, plagas, clima y cosecha.
+  - El asistente te mostrará recomendaciones basadas en los datos de la parcela seleccionada.
+
+- **Gestión de Sensores y Lecturas:**  
+  Visualiza y analiza las lecturas históricas de los sensores de cada parcela.
+  - Descarga reportes o exporta datos si es necesario.
+
+---
+
+### 🛠 Técnico
+
+- **Gestión de Usuarios y Parcelas:**  
+  Desde el menú de "Parcelas" y "Trabajadores", crea, edita o elimina parcelas y usuarios asociados.
+  - Asigna roles y parcelas a cada trabajador.
+  - Usa los formularios modales para una gestión rápida.
+
+- **Configuración de Umbrales:**  
+  Accede a la sección de "Configuración" para definir los valores de alerta para cada tipo de sensor en cada parcela.
+  - Ajusta los umbrales según las necesidades de cada zona.
+
+- **Supervisión General:**  
+  Visualiza el estado global del sistema, sensores activos, alertas recientes y estadísticas rápidas desde el dashboard.
+  - Utiliza las visualizaciones avanzadas para detectar anomalías o necesidades de mantenimiento.
+
+- **Soporte y Mantenimiento:**  
+  Realiza pruebas, revisa logs y asegura el correcto funcionamiento de la plataforma.
+
+---
+
+> **Tip:**  
+> Todas las funciones principales están accesibles desde el navbar. El sistema adapta las opciones visibles según tu rol.
+
 
 ## 📝 Casos de Uso del Asistente IA
 
@@ -164,216 +245,6 @@ ecosmart/
    
    Usuario: "¿Qué cultivos son adecuados para sembrar en esta región en octubre?"
    IA: Recomendaciones basadas en clima, tipo de suelo y condiciones locales
-
-   
-# 👨‍💻 Configuración del Entorno de Desarrollo
-
-## 1. Requisitos Previos
-
-### Software Necesario
-- Python 3.9+ ([Descargar](https://www.python.org/downloads/))
-- Git ([Descargar](https://git-scm.com/downloads))
-- Editor de código (recomendado: VS Code, [Descargar](https://code.visualstudio.com/))
-- SQLite Browser (opcional, para gestión visual de BD, [Descargar](https://sqlitebrowser.org/))
-
-### Conocimientos Recomendados
-- Python básico/intermedio
-- Conocimientos básicos de API REST
-- HTML/CSS básico
-- Bootstrap 5
-- Git y control de versiones
-
-## 2. Configuración del Entorno Python
-
-### Crear y Activar Entorno Virtual
-
-bash
-#### * Windows
-python -m venv venv
-venv\Scripts\activate
-
-#### * Linux/MacOS
-python3 -m venv venv
-source venv/bin/activate
-
-## 3. Configuración de Base de Datos SQLite
-
-### Crear el Archivo de Base de Datos
-La base de datos se creará automáticamente con SQLAlchemy, pero es recomendable definir el esquema de antemano.
-
-Crear un archivo `app/database/db.py`:
-
-## Configuración de SQLAlchemy
-
-```python
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-# URL para una base de datos SQLite local
-SQLALCHEMY_DATABASE_URL = "sqlite:///./ecosmart.db"
-
-# Para una base de datos en memoria durante el desarrollo:
-# SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-# Crear el motor de la base de datos
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-
-# Crear una clase de sesión local
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Crear clase base para los modelos
-Base = declarative_base()
-```
-
-
-# Función de dependencia para obtener la DB session
-```python
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-``` 
-## 4. Configuración de Deepseek API
-
-### Crear Archivo de Configuración
-Crear archivo `.env` en la raíz del proyecto:
-
-
-## Archivo de configuración `.env`
-
-```bash
-# Configuración general
-DEBUG=True
-SECRET_KEY=tu_clave_secreta_muy_larga_y_aleatoria
-
-# APIs externas
-DEEPSEEK_API_KEY=tu_clave_api_deepseek
-OPENWEATHERMAP_API_KEY=tu_clave_api_openweathermap
-
-# Configuración de correo (para alertas)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=tu_correo@gmail.com
-EMAIL_PASSWORD=tu_contraseña_o_app_password
-```
-## 5. Configuración del Frontend
-
-El proyecto EcoSmart utiliza HTML y CSS puro para la interfaz de usuario, con el soporte del framework **[Bootstrap 5](https://getbootstrap.com/)** para facilitar el diseño responsivo y componentes visuales listos para usar.
-
-### Incluir Bootstrap en tus plantillas
-
-Puedes incluir Bootstrap directamente desde el CDN oficial en tus archivos HTML:
-
-```html
-<!-- Bootstrap 5 desde CDN -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-```
-
-Esto te permite usar todas las clases y componentes de Bootstrap sin necesidad de descargar nada localmente.
-
----
-
-## 6. Configuración de Git y Control de Versiones
-
-### Inicialización del Repositorio
-
-```bash
-git init
-```
-
-### Crear `.gitignore`
-
-Crear un archivo `.gitignore` con las siguientes reglas para Python y entornos virtuales:
-
-```plaintext
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Entorno virtual
-venv/
-ENV/
-
-# Archivos de base de datos
-*.db
-*.sqlite3
-
-# Entorno
-.env
-
-# Logs
-*.log
-
-# IDE específicos
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS específicos
-.DS_Store
-Thumbs.db
-```
-## 7. Servicio de Clima con OpenWeatherMap
-
-Archivo: `app/services/openweather.py`
-
-```python
-import os, aiohttp, logging
-from dotenv import load_dotenv
-from typing import Dict, Any
-
-load_dotenv()
-logger = logging.getLogger(__name__)
-
-class OpenWeatherService:
-    def __init__(self):
-        self.api_key = os.getenv("OPENWEATHERMAP_API_KEY")
-        if not self.api_key:
-            logger.error("API key no encontrada.")
-            raise ValueError("Falta OPENWEATHERMAP_API_KEY")
-        self.base_url = "https://api.openweathermap.org/data/2.5"
-
-    async def get_current_weather(self, lat: float, lon: float, lang: str = "es") -> Dict[str, Any]:
-        params = {
-            "lat": lat, "lon": lon,
-            "appid": self.api_key,
-            "units": "metric", "lang": lang
-        }
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{self.base_url}/weather", params=params) as resp:
-                    if resp.status == 200:
-                        return await resp.json()
-                    logger.error(f"Error {resp.status}: {await resp.text()}")
-        except Exception as e:
-            logger.error(f"Excepción: {str(e)}")
-            return {"error": str(e)}
-```
 
 ---
 ## 📊 Planificación del Proyecto
